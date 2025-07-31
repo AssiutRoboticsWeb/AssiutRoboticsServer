@@ -24,6 +24,8 @@ const cors = require('cors');
 const app = express();
 app.set('view engine', 'ejs');
 
+
+
 //middlle wares
 app.use(cors());
 
@@ -33,7 +35,7 @@ app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
 
 
-
+   
 
 app.use("/uploads", express.static(__dirname + "/uploads"))
 app.use("/members", memberRouter);

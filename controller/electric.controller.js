@@ -160,8 +160,6 @@ const deleteTask = asyncWrapper(async (req, res) => {
     res.status(200).json({ status: 200, message: "Task deleted successfully" });
 })
 
-
-
 const getTask = asyncWrapper(async (req, res) => {
     const { taskId } = req.body;
 

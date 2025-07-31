@@ -69,7 +69,7 @@ const bookMeeting = asyncWrapper(async (req, res) => {
     if (!meeting) {
         return res.status(404).json({ status: 404, message: "Meeting not found" });
     }
-
+    
     // let validateMember = false;
     // meeting.members.forEach(ele => {
     //     if (ele._id == member._id) {
@@ -95,6 +95,10 @@ const bookMeeting = asyncWrapper(async (req, res) => {
         return res.status(404).json({ status: 404, message: "Time not found" });
     }
     console.log("Date",Date);
+    // search in bookedBy for the user booking if exist req.error you have booked already
+    if(Date.bookedBy.includes(member._id)){
+        return res.status(404).json({status : 401,message : "member already booked"})
+    }
     Date.isBooked = true;
     Date.bookedBy.push(member._id);
     await meeting.save();
