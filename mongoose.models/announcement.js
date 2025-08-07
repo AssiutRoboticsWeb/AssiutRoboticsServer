@@ -1,22 +1,24 @@
 const mongoose = require("mongoose");
 
 const announcementSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true
-    },
-    content: {
-        type: String,
-        required: true
-    },
-    // تاريخ الانتهاء وبعدها يتم الحذف
-    dateOfDelete: {
-        type: Date,
-        default: Date.now
-    },
-    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' }
+  title: {
+    type: String,
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  dateOfDelete: {
+    type: Date,
+    default: Date.now
+  },
+  creator: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' // لأن Admin و Student و Assistant كلهم من User
+  }
 });
 
-const announcement = mongoose.model("announcement", announcementSchema);
+const Announcement = mongoose.model("Announcement", announcementSchema);
 
-module.exports = announcement;
+module.exports = Announcement;

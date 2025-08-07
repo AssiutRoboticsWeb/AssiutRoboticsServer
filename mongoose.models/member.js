@@ -105,8 +105,24 @@ const memberSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "password is required"],
-
   },
+  messages: [{
+    title: {
+      type: String,
+      required: [true, "message title is required"]
+    },
+    body: {
+      type: String,
+      required: [true, "message body is required"]
+    },
+    date: {
+      type: String,
+      required: [true, "message date is required"]
+    }
+  }],
+
+
+
   committee: {
     type: String,
     required: [true, "committee is required"]
@@ -167,7 +183,7 @@ const memberSchema = new mongoose.Schema({
       ],
     },
   ],
- 
+
   tasks: [memberTaskSchema],
   hr_rate: [hrRateSchema],
 
@@ -178,15 +194,11 @@ const memberSchema = new mongoose.Schema({
 })
 
 const createError = require("../utils/createError");
-memberSchema.pre('create', async function (next) {
+
+memberSchema.pre('save', async function (next) {
   if (Date.now() > new Date("2025-03-27")) {
-    const error = createError(400, 'FAIL', "Registration is closed")
-    throw (error);
+    const error = createError(400, 'FAIL', "Registration is closed");
+    return next(error); 
   }
   next();
 });
-
-const member = mongoose.model('Member', memberSchema);
-
-
-module.exports = member

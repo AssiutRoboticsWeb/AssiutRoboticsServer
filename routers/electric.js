@@ -1,122 +1,77 @@
 const express = require("express");
 const Router = express.Router();
 
-const Admin = require('../mongoose.models/electric').AdminSchema;
-const Assistant = require('../mongoose.models/electric').AssistantSchema;
+const { Admin, Assistant, User } = require('../mongoose.models/electric');
 const electricController = require('../controller/electric.controller');
 
-
-// maka validation middleware
-const adminValidate = (req, res, next) => {
+// ====== Middlewares ======
+const adminValidate = async (req, res, next) => {
     const { email } = req.body;
     if (!email) {
         return res.status(400).json({ status: 400, message: "Admin email is required" });
     }
-    const admin = Admin.findOne({ email });
-    if (!admin) {
-        return res.status(404).json({ status: 404, message: "Admin not found" });
+    try {
+        const admin = await Admin.findOne({ email });
+        if (!admin) {
+            return res.status(404).json({ status: 404, message: "Admin not found" });
+        }
+        next();
+    } catch (err) {
+        res.status(500).json({ status: 500, message: "Error checking admin" });
     }
-    next();
-}
+};
 
-const assistantValidate = (req, res, next) => {
+const assistantValidate = async (req, res, next) => {
     const { email } = req.body;
     if (!email) {
         return res.status(400).json({ status: 400, message: "Assistant email is required" });
     }
-    const assistant = Assistant.findOne({ email });
-    if (!assistant) {
-        return res.status(404).json({ status: 404, message: "Assistant not found" });
+    try {
+        const assistant = await Assistant.findOne({ email });
+        if (!assistant) {
+            return res.status(404).json({ status: 404, message: "Assistant not found" });
+        }
+        next();
+    } catch (err) {
+        res.status(500).json({ status: 500, message: "Error checking assistant" });
     }
-    next();
-}
+};
 
-// student operations
-Router.post("/addStudent",adminValidate, assistantValidate, );
+// ====== Student operations ======
+Router.post("/addStudent", adminValidate, assistantValidate, electricController.addStudent);
+Router.delete("/deleteStudent", adminValidate, assistantValidate, electricController.deleteStudent);
+Router.put("/updateStudent", adminValidate, assistantValidate, electricController.updateStudent);
+Router.get("/getAllStudents", electricController.getStudents);
+Router.get("/getStudentById", adminValidate, assistantValidate, electricController.getStudent);
 
-Router.delete("/deleteStudent",adminValidate, assistantValidate, );
-
-Router.put("/updateStudent",adminValidate, assistantValidate, );
-
-Router.get("/getAllStudents", );
-
-Router.get("/getStudentById",adminValidate, assistantValidate, );
-
-
-
-// add assistant
-Router.post("/addAssistant",adminValidate, );
-
-Router.delete("/deleteAssistant",adminValidate, );
-
-Router.put("/updateAssistant",adminValidate, );
-
-Router.get("/getAllAssistants",adminValidate, );
-
-Router.get("/getAssistantById",adminValidate, );
-
-
-// admin operations
-
-Router.post("/changeAdmin",adminValidate, );
-
-
-// electric Track operations
-
-// add electric Track
+// ====== Track operations ======
 Router.post("/addTrack", electricController.addTrack);
-
-// update electric Track
 Router.put("/updateTrack", electricController.updateTrack);
-
-// delete electric Track
 Router.delete("/deleteTrack", electricController.deleteTrack);
+Router.get("/getAllTracks", electricController.getTracks);
+Router.get("/getTrackById", electricController.getTrack);
 
-// get all electric Tracks
-Router.get("/getAllTracks",electricController.getTracks );
+// ====== Course operations ======
+Router.post("/addCourse", adminValidate, assistantValidate, electricController.addCourse);
+Router.put("/updateCourse", adminValidate, assistantValidate, electricController.updateCourse);
+Router.delete("/deleteCourse", adminValidate, assistantValidate, electricController.deleteCourse);
+Router.get("/getAllCourses", electricController.getCourses);
+Router.get("/getCourseById", electricController.getCourse);
 
-// get electric Track by id
-Router.get("/getTrackById", );
+// ====== Task operations ======
+Router.post("/addTaskTocourse", adminValidate, assistantValidate, electricController.addTask);
+Router.put("/updateTaskOfCourse", adminValidate, assistantValidate, electricController.updateTask);
+Router.delete("/deleteTaskOfCourse", adminValidate, assistantValidate, electricController.deleteTask);
+Router.get("/getTaskById", electricController.getTask);
+Router.get("/getAllTasksOfCourse/:courseId", electricController.getAllTasksOfCourse);
 
-// electric Course operations
+// ====== Announcement ======
+Router.post("/announceTrack", adminValidate, electricController.announceTrackToUsers);
 
-// add electric Course
-Router.post("/addCourse",adminValidate, assistantValidate, );
-
-// update electric Course
-Router.put("/updateCourse",adminValidate, assistantValidate, );
-
-// delete electric Course
-Router.delete("/deleteCourse",adminValidate, assistantValidate, );
-
-// get all electric Courses
-Router.get("/getAllCourses", );
-
-// get electric Course by id
-Router.get("/getCourseById", );
-
-
-
-
-// electric Task operations
-
-// add electric Task
-Router.post("/addTaskTocourse",adminValidate, assistantValidate, );
-
-// update electric Task
-Router.put("/updateTaskOfCourse",adminValidate, assistantValidate, );
-
-// delete electric Task
-Router.delete("/deleteTaskOfCourse",adminValidate, assistantValidate, );
-
-// get all electric Tasks
-Router.get("/getAllTasksOfCourse",);
-
-// get electric Task by id
-Router.get("/getTaskById", );
-
-
-
+// ====== Applicants ======
+Router.post("/applyToTrack/:trackId", electricController.applyToTrack); // ✅ modified: use params
+Router.get("/getApplicants/:trackId", adminValidate, electricController.getApplicantsByTrack);
+Router.post("/respondToApplicant", adminValidate, electricController.respondToApplicant); // ✅ unified with controller
 
 
 
