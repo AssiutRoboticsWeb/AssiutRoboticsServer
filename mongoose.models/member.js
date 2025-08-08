@@ -202,3 +202,6 @@ memberSchema.pre('save', async function (next) {
   }
   next();
 });
+
+// Export the model
+module.exports = mongoose.model('Member', memberSchema);
