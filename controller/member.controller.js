@@ -68,7 +68,7 @@ const htmlContent_ofVrify = fs.readFileSync(filePath, "utf-8");
 const register = asyncWrapper(async (req, res, next) => {
 
 
-    if(Date.now() > new Date("2025-03-27")){
+    if(Date.now() > new Date("2025-09-27")){
         const error = createError(400, httpStatusText.FAIL, "Registration is closed")
         throw (error);
     }
