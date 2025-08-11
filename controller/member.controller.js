@@ -449,6 +449,39 @@ const changeHead = asyncWrapper(async (req, res) => {
 
 });
 
+const changeVice = asyncWrapper(async(req,res) =>{
+    const id = req.body.memberId;
+    const email = req.decoded.email;
+    const Member = await member.findOne({ email });
+    if (Member.role != 'head') {
+        const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
+        throw error
+    }
+    const newVice = await member.findOne({ _id: id });
+    const committee = newVice.committee
+    const oldVice = await member.findOne({ committee, role: "vice" });
+    if (oldVice) {
+        if(oldVice.committee == 'head')
+           {
+             const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
+            throw error
+           }
+        if (oldVice.email == newVice.email) {
+            return res.status(200).json({ message: "the same vice" })
+        }
+        oldVice.role = "member";
+        await oldVice.save()
+    }
+
+    newVice.role = "vice";
+    await newVice.save();
+
+    res.status(200).json({
+        status: httpStatusText.SUCCESS,
+        data: null,
+        message: "done",
+    });
+})
 
 const rate = async (req, res) => {
     try {
@@ -1752,6 +1785,7 @@ module.exports = {
     confirm,
     controlHR,
     changeHead,
+    changeVice,
     generateOTP,
     verifyOTP,
     changePass,
