@@ -136,10 +136,12 @@ const memberSchema = new mongoose.Schema({
     required: [true, "phone number is required"],
     validate: [validator.isMobilePhone, "enter a valid phone number"]
   },
-  role: {
-    type: String,
-    default: "not accepted"
-  },
+ role: {
+  type: String,
+  enum: ["not accepted", "member", "head"], // حطيت head بدل admin
+  default: "not accepted"
+},
+
   avatar: {
     type: String,
     default: "../all-images/default.png"
@@ -172,7 +174,7 @@ const memberSchema = new mongoose.Schema({
               submissionLink: String,
               submittedAt: {
                 type: Date,
-                default: Date.now()
+                default: Date.now
               }
               ,
               rate: String,
