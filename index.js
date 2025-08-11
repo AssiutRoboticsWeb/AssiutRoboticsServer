@@ -1,82 +1,73 @@
 require('dotenv').config();
 const PORT = process.env.PORT;
 
-
 const express = require("express");
+const app = express();
+
+// Routers
 const memberRouter = require('./routers/member.router')
 const blogRouter = require('./routers/blog.router')
 const componentRouter = require('./routers/component.router')
-const lapDateRouter=require('./routers/lapDates.js')
-const visitRouter=require('./routers/visit.js')
-const electricRouter = require('./routers/electric');
+const lapDateRouter = require('./routers/lapDates.js')
+const visitRouter = require('./routers/visit.js')
 const announcementRouter = require('./routers/announcement');
 const meetingRouter = require('./routers/meeting');
 const guestRouter = require('./routers/guest.js');
-// status text
-const httpStatusText = require('./utils/httpStatusText');
 const webhookRoutes = require('./routers/webhook.router.js');
+const trackRouter = require('./routers/track.js');
 
+// Utils
+const httpStatusText = require('./utils/httpStatusText');
 
-//cors
-
+// Middleware
 const cors = require('cors');
-
-const app = express();
-app.set('view engine', 'ejs');
-
-
-
-//middlle wares
 app.use(cors());
 
-// pody barser
 const body_parser = require('body-parser');
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
 
+app.set('view engine', 'ejs');
 
-   
-
-app.use("/uploads", express.static(__dirname + "/uploads"))
+// ✅ توصيل المسارات هنا
 app.use("/members", memberRouter);
-app.use('/blogs', blogRouter);
-app.use('/components', componentRouter);
-app.use("/lapDates",lapDateRouter);
-app.use("/visitor",visitRouter);
-app.use("/electric", electricRouter);
-app.use("/announcement", announcementRouter);
-app.use("/meeting", meetingRouter);
-app.use('/guest', guestRouter);
-app.use('/webhook', webhookRoutes);
+app.use("/blogs", blogRouter);
+app.use("/components", componentRouter);
+app.use("/lap-dates", lapDateRouter);
+app.use("/visits", visitRouter);     
+app.use("/announcements", announcementRouter);
+app.use("/meetings", meetingRouter);
+app.use("/guests", guestRouter);
+app.use("/webhooks", webhookRoutes);
+app.use("/tracks", trackRouter);
 
-// const committeeRouter = require('./routers/committee.router');
-// app.use('/api/committees', committeeRouter);
+// Default route (اختياري لو حابة تضيفي مسار أساسي)
+app.get("/", (req, res) => {
+    res.send("API is working ✅");
+});
 
-const loggerMiddleware = require("./middleware/loggerMiddleware");
+app.post("/test", (req, res) => {
+    res.send("POST route works ✅");
+});
 
-app.use(loggerMiddleware);
+app.use("/",(req, res, next) => {
+    res.status(404).json({
+        success: false,
+        message: "Not Found api route"
+    });
+});
 
-
-app.use("*", (req, res, next) => {
-  res.status(404).json({ status: 404, message: "not found Api" });
-})
-
-
-
-app.use((error, req, res, next) => {
-
-  console.log(error.message);
-  
-  res.status(error.statusCode || 500).json({
-    status: error.statusText || httpStatusText.ERROR,
-    message: error.message
-  })
-})
-
-
-
-
-
+app.use(function (err,req, res,next) {
+    console.log(err.message);
+    res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        error: err.message
+    });
+});
+// Start the server
 app.listen(PORT, () => {
-  console.log("server is run and listen to port : ", `http://localhost:${PORT}/`);
-})
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+

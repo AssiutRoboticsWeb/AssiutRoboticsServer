@@ -8,6 +8,4 @@ router.route('/')
 .post(controller.viewUser)
 .get(controller.getViews);
 
-
-
 module.exports = router;
