@@ -68,7 +68,8 @@ const htmlContent_ofVrify = fs.readFileSync(filePath, "utf-8");
 const register = asyncWrapper(async (req, res, next) => {
 
 
-    if(Date.now() > new Date("2025-03-27")){
+    if(Date.now() > new Date("2025-09-27")){
+        console.log("line 73 ")
         const error = createError(400, httpStatusText.FAIL, "Registration is closed")
         throw (error);
     }
@@ -448,6 +449,42 @@ const changeHead = asyncWrapper(async (req, res) => {
 
 });
 
+const changeVice = asyncWrapper(async(req,res) =>{
+    const id = req.body.memberId;
+    const email = req.decoded.email;
+    const Member = await member.findOne({ email });
+    if (Member.role != 'head') {
+        const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
+        throw error
+    }
+    const newVice = await member.findOne({ _id: id });
+    const committee = newVice.committee
+    const oldVice = await member.findOne({ committee, role: "vice" });
+    if(Member.committee != newVice.committee){
+        const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
+        throw error
+    }
+    if (oldVice) {
+        if (oldVice.role == 'head') {
+            const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
+            throw error
+           }
+        if (oldVice.email == newVice.email) {
+            return res.status(200).json({ message: "the same vice" })
+        }
+        oldVice.role = "member";
+        await oldVice.save()
+    }
+
+    newVice.role = "vice";
+    await newVice.save();
+
+    res.status(200).json({
+        status: httpStatusText.SUCCESS,
+        data: null,
+        message: "done",
+    });
+})
 
 const rate = async (req, res) => {
     try {
@@ -1751,6 +1788,7 @@ module.exports = {
     confirm,
     controlHR,
     changeHead,
+    changeVice,
     generateOTP,
     verifyOTP,
     changePass,

@@ -187,13 +187,13 @@ const requestToBorrow= asyncWrapper(async (req, res) => {
     console.log(email);
     const member=await Member.findOne({email});
 
-    console.log(member);
     
     if(!member){
         const error=createError(400, 'Fail',"member not found");
         throw(error);
     }
     const {componentId} = req.body;
+    console.log(componentId);
     const updatedComponent = await component.findById(componentId)
     if(!updatedComponent){
         const error=createError(400, 'Fail',"component not found");

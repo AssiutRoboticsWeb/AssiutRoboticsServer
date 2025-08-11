@@ -129,6 +129,7 @@ Router.route("/get/:com").get(memberController.getCommittee)
 
 
 Router.route("/changeHead").post(JWT.verify, memberController.changeHead);
+Router.route("/changeVice").post(JWT.verify, memberController.changeVice);
 
 Router.route("/hr").post(JWT.verify, memberController.controlHR);
 
