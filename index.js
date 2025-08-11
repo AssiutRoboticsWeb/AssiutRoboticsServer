@@ -15,6 +15,8 @@ const meetingRouter = require('./routers/meeting');
 const guestRouter = require('./routers/guest.js');
 const webhookRoutes = require('./routers/webhook.router.js');
 const trackRouter = require('./routers/track.js');
+const courseRouter = require('./routers/course.js');
+
 
 // Utils
 const httpStatusText = require('./utils/httpStatusText');
@@ -26,6 +28,8 @@ app.use(cors());
 const body_parser = require('body-parser');
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
+
+
 
 app.set('view engine', 'ejs');
 
@@ -40,6 +44,8 @@ app.use("/meetings", meetingRouter);
 app.use("/guests", guestRouter);
 app.use("/webhooks", webhookRoutes);
 app.use("/tracks", trackRouter);
+app.use("/courses", courseRouter);
+
 
 // Default route (اختياري لو حابة تضيفي مسار أساسي)
 app.get("/", (req, res) => {
