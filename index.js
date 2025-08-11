@@ -16,7 +16,7 @@ const guestRouter = require('./routers/guest.js');
 const webhookRoutes = require('./routers/webhook.router.js');
 const trackRouter = require('./routers/track.js');
 const courseRouter = require('./routers/course.js');
-
+const applicantRouter = require('./routers/applicant.js');
 
 // Utils
 const httpStatusText = require('./utils/httpStatusText');
@@ -45,6 +45,7 @@ app.use("/guests", guestRouter);
 app.use("/webhooks", webhookRoutes);
 app.use("/tracks", trackRouter);
 app.use("/courses", courseRouter);
+app.use("/applicants", applicantRouter);
 
 
 // Default route (اختياري لو حابة تضيفي مسار أساسي)

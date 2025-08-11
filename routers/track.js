@@ -5,6 +5,11 @@ const trackController = require('../controller/track_controller');
 
 // ====== Track CRUD Operations ======
 
+
+const jwt = require('../middleware/jwt');
+
+
+Router.use(jwt.verify);
 // Create a new track
 Router.post("/", trackController.createTrack);
 

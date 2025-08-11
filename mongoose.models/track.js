@@ -15,8 +15,8 @@ const trackSchema = new mongoose.Schema({
         }
     ],
     committee: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Member'
+       type:String,
+       
     },
     members: [
         {
@@ -26,9 +26,18 @@ const trackSchema = new mongoose.Schema({
     ],
     applicants: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Member'
+            member:{
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Member'
+            },
+            status:{
+                type: String,
+                enum: ['pending', 'accepted', 'rejected'],
+                default: 'pending'
+            }
         }
+        
+  
     ],
     superVisors: [
         {

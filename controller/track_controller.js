@@ -3,16 +3,24 @@ const Track = require('../mongoose.models/track');
 const Course = require('../mongoose.models/course'); 
 const asyncWrapper = require('../middleware/asyncWrapper');
 const createError = require('../utils/createError');
-
+const Member = require('../mongoose.models/member');
 // Create a new track
 const createTrack = asyncWrapper(async (req, res, next) => {
-    const { name, description, courses, committee, members, applicants, superVisors, HRs } = req.body;
+    const {email} = req.decoded;
+    const member = await Member.findOne({ email });
+    if (!member) {
+        return res.status(404).json({
+            success: false,
+            message: 'Member not found'
+        });
+    }
+    const { name, description, courses, members, applicants, superVisors, HRs } = req.body;
     
     const track = new Track({
         name,
         description,
         courses: courses || [],
-        committee,
+        committee:member.committee,
         members: members || [],
         applicants: applicants || [],
         superVisors: superVisors || [],
@@ -30,7 +38,23 @@ const createTrack = asyncWrapper(async (req, res, next) => {
 
 // Get all tracks
 const getAllTracks = asyncWrapper(async (req, res, next) => {
-    const tracks = await Track.find()
+    const {email} = req.decoded;
+    const member = await Member.findOne({ email });
+    if (!member) {
+        return res.status(404).json({
+            success: false,
+            message: 'Member not found'
+        });
+
+    }
+    let tracks=[];
+    if(member.role === "member"){
+        tracks = await Track.find();            
+    }else{
+        tracks = await Track.find({
+            committee: member.committee
+        });
+    }
         // .populate('courses', 'name description')
         // .populate('members', 'name Avatar email')
         // .populate('applicants', 'name Avatar email')
