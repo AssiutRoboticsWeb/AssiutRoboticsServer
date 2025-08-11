@@ -460,10 +460,13 @@ const changeVice = asyncWrapper(async(req,res) =>{
     const newVice = await member.findOne({ _id: id });
     const committee = newVice.committee
     const oldVice = await member.findOne({ committee, role: "vice" });
+    if(Member.committee != newVice.committee){
+        const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
+        throw error
+    }
     if (oldVice) {
-        if(oldVice.committee == 'head')
-           {
-             const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
+        if (oldVice.role == 'head') {
+            const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
             throw error
            }
         if (oldVice.email == newVice.email) {
