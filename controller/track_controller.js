@@ -1,4 +1,6 @@
+
 const Track = require('../mongoose.models/track');
+const Course = require('../mongoose.models/course');
 const asyncWrapper = require('../middleware/asyncWrapper');
 
 // Create a new track

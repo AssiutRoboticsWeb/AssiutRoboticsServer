@@ -12,13 +12,13 @@ Router.post("/", trackController.createTrack);
 Router.get("/", trackController.getAllTracks);
 
 // Get single track by ID
-Router.get("/:id", trackController.getTrackById);
+Router.route("/:id").get(trackController.getTrackById)
 
-// Update track by ID
-Router.put("/:id", trackController.updateTrack);
+.put(trackController.updateTrack)
+.delete(trackController.deleteTrack)
 
-// Delete track by ID
-Router.delete("/:id", trackController.deleteTrack);
+
+
 
 // ====== Track Member Management ======
 
