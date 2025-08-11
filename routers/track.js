@@ -18,7 +18,7 @@ Router.get("/", trackController.getAllTracks);
 
 // Get single track by ID
 Router.route("/:id").get(trackController.getTrackById)
-
+.get(trackController.getTrackById)
 .put(trackController.updateTrack)
 .delete(trackController.deleteTrack)
 
@@ -38,7 +38,7 @@ Router.delete("/:trackId/members/:memberId", trackController.removeMemberFromTra
 // Add applicant to track
 Router.post("/:trackId/applicants/:memberId", trackController.addApplicantToTrack);
 
-// Remove applicant from track
+// Remove applicant from track 
 Router.delete("/:trackId/applicants/:memberId", trackController.removeApplicantFromTrack,(req,res,next)=>{
     next()
 });
