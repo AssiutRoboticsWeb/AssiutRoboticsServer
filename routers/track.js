@@ -34,6 +34,9 @@ Router.delete("/:trackId/members/:memberId", trackController.removeMemberFromTra
 Router.post("/:trackId/applicants/:memberId", trackController.addApplicantToTrack);
 
 // Remove applicant from track
-Router.delete("/:trackId/applicants/:memberId", trackController.removeApplicantFromTrack);
+Router.delete("/:trackId/applicants/:memberId", trackController.removeApplicantFromTrack,(req,res,next)=>{
+    next()
+});
 
+// ====== Track Supervisor Management ======
 module.exports = Router;

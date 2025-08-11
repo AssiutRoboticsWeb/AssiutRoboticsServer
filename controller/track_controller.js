@@ -1,7 +1,8 @@
 
 const Track = require('../mongoose.models/track');
-const Course = require('../mongoose.models/course');
+const Course = require('../mongoose.models/course'); 
 const asyncWrapper = require('../middleware/asyncWrapper');
+const createError = require('../utils/createError');
 
 // Create a new track
 const createTrack = asyncWrapper(async (req, res, next) => {
@@ -30,11 +31,11 @@ const createTrack = asyncWrapper(async (req, res, next) => {
 // Get all tracks
 const getAllTracks = asyncWrapper(async (req, res, next) => {
     const tracks = await Track.find()
-        .populate('courses', 'name description')
-        .populate('members', 'name Avatar email')
-        .populate('applicants', 'name Avatar email')
-        .populate('superVisors', 'name Avatar email')
-        .populate('HRs', 'name Avatar email');
+        // .populate('courses', 'name description')
+        // .populate('members', 'name Avatar email')
+        // .populate('applicants', 'name Avatar email')
+        // .populate('superVisors', 'name Avatar email')
+        // .populate('HRs', 'name Avatar email');
     
     res.status(200).json({
         success: true,
@@ -48,12 +49,12 @@ const getTrackById = asyncWrapper(async (req, res, next) => {
     const { id } = req.params;
     
     const track = await Track.findById(id)
-        .populate('courses', 'name description')
-        .populate('committee', 'name email')
-        .populate('members', 'name email')
-        .populate('applicants', 'name email')
-        .populate('superVisors', 'name email')
-        .populate('HRs', 'name email');
+        // .populate('courses', 'name description')
+        // .populate('committee', 'name email')
+        // .populate('members', 'name email')
+        // .populate('applicants', 'name email')
+        // .populate('superVisors', 'name email')
+        // .populate('HRs', 'name email');
     
     if (!track) {
         return res.status(404).json({
