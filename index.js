@@ -17,6 +17,12 @@ const webhookRoutes = require('./routers/webhook.router.js');
 const trackRouter = require('./routers/track.js');
 const courseRouter = require('./routers/course.js');
 const applicantRouter = require('./routers/applicant.js');
+const tracksysRouter = require('./routers/tracksys.js');
+const taskRouter = require('./routers/task.js');
+const ratingRouter = require('./routers/rating.js');
+
+
+
 
 // Utils
 const httpStatusText = require('./utils/httpStatusText');
@@ -46,6 +52,12 @@ app.use("/webhooks", webhookRoutes);
 app.use("/tracks", trackRouter);
 app.use("/courses", courseRouter);
 app.use("/applicants", applicantRouter);
+app.use("/tracksys", tracksysRouter);
+app.use("/tasks", taskRouter);
+app.use("/rating", ratingRouter);
+
+
+
 
 
 // Default route (اختياري لو حابة تضيفي مسار أساسي)
@@ -64,12 +76,15 @@ app.use("/",(req, res, next) => {
     });
 });
 
-app.use(function (err,req, res,next) {
-    console.log(err.message);
-    res.status(500).json({
+app.use(function (err, req, res, next) {
+    const statusCode = err.statusCode || 500;
+    const statusText = err.statusText || httpStatusText.ERROR;
+    console.log(`[Error ${statusCode}]`, err.message);
+    res.status(statusCode).json({
         success: false,
-        message: "Internal Server Error",
-        error: err.message
+        statusText,
+        message: statusCode === 500 ? "Internal Server Error" : err.message,
+        error: statusCode === 500 ? undefined : err.message,
     });
 });
 // Start the server

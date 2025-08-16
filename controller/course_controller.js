@@ -232,6 +232,77 @@ const getTasksForCourse = asyncWrapper(async (req, res, next) => {
     });
 });
 
+// Update a task inside a course
+const updateTaskInCourse = asyncWrapper(async (req, res, next) => {
+    const { courseId, taskId } = req.params;
+    const { title, description, startDate, dueDate, file } = req.body;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+        return res.status(404).json({
+            success: false,
+            message: 'Course not found'
+        });
+    }
+
+    // إيجاد المهمة داخل المصفوفة
+    const task = course.tasks.id(taskId);
+    if (!task) {
+        return res.status(404).json({
+            success: false,
+            message: 'Task not found in this course'
+        });
+    }
+
+    // تعديل البيانات
+    task.title = title || task.title;
+    task.description = description || task.description;
+    task.startDate = startDate || task.startDate;
+    task.dueDate = dueDate || task.dueDate;
+    task.file = file || task.file;
+
+    await course.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Task updated successfully',
+        data: task
+    });
+});
+
+// Delete a task inside a course
+const deleteTaskInCourse = asyncWrapper(async (req, res, next) => {
+    const { courseId, taskId } = req.params;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+        return res.status(404).json({
+            success: false,
+            message: 'Course not found'
+        });
+    }
+
+    // إيجاد المهمة داخل المصفوفة
+    const task = course.tasks.id(taskId);
+    if (!task) {
+        return res.status(404).json({
+            success: false,
+            message: 'Task not found in this course'
+        });
+    }
+
+    // حذف المهمة
+    task.remove();
+
+    await course.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Task deleted successfully',
+        data: task
+    });
+});
+
 module.exports = {
     createCourse,
     getAllCourses,
@@ -242,5 +313,6 @@ module.exports = {
     removeTrackFromCourse,
     addTaskToCourse,
     removeTaskFromCourse,
-    getTasksForCourse
+    getTasksForCourse,
+    updateTaskInCourse
 };

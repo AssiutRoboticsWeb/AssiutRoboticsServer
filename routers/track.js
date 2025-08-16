@@ -1,47 +1,46 @@
-const express = require("express");
-const Router = express.Router();
-
+// routers/track.router.js
+const express = require('express');
+const router = express.Router();
 const trackController = require('../controller/track_controller');
+const jwt = require('../middleware/jwt');
+router.use(jwt.verify);
 
 // ====== Track CRUD Operations ======
 
-
-const jwt = require('../middleware/jwt');
-
-
-Router.use(jwt.verify);
 // Create a new track
-Router.post("/", trackController.createTrack);
+router.post('/',trackController.createTrack);
 
 // Get all tracks
-Router.get("/", trackController.getAllTracks);
+router.get('/',trackController.getAllTracks);
 
 // Get single track by ID
-Router.route("/:id").get(trackController.getTrackById)
+router.get('/:id',trackController.getTrackById);
 
-.put(trackController.updateTrack)
-.delete(trackController.deleteTrack)
+// Update track by ID
+router.put('/:id',trackController.updateTrack);
 
-
-
+// Delete track by ID
+router.delete('/:id',trackController.deleteTrack);
 
 // ====== Track Member Management ======
 
 // Add member to track
-Router.post("/:trackId/members/:memberId", trackController.addMemberToTrack);
+router.put('/:trackId/members/:memberId',trackController.addMemberToTrack);
 
 // Remove member from track
-Router.delete("/:trackId/members/:memberId", trackController.removeMemberFromTrack);
+router.delete('/:trackId/members/:memberId',trackController.removeMemberFromTrack);
 
 // ====== Track Applicant Management ======
 
 // Add applicant to track
-Router.post("/:trackId/applicants/:memberId", trackController.addApplicantToTrack);
+router.put('/:trackId/applicants/:memberId',trackController.addApplicantToTrack);
 
 // Remove applicant from track
-Router.delete("/:trackId/applicants/:memberId", trackController.removeApplicantFromTrack,(req,res,next)=>{
-    next()
-});
+router.delete('/:trackId/applicants/:memberId',trackController.removeApplicantFromTrack);
 
-// ====== Track Supervisor Management ======
-module.exports = Router;
+// ====== Track Announcements ======
+
+// Announce track
+router.post('/:trackId/announce',trackController.announceTrack);
+
+module.exports = router;

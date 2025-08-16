@@ -138,7 +138,7 @@ const memberSchema = new mongoose.Schema({
   },
  role: {
   type: String,
-  enum: ["not accepted", "member", "head"], // حطيت head بدل admin
+  enum: ["not accepted", "member", "head","Vice" ], // حطيت head بدل admin
   default: "not accepted"
 },
 

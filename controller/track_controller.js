@@ -4,6 +4,7 @@ const Course = require('../mongoose.models/course');
 const asyncWrapper = require('../middleware/asyncWrapper');
 const createError = require('../utils/createError');
 const Member = require('../mongoose.models/member');
+const Announcement = require('../mongoose.models/announcement');
 // Create a new track
 const createTrack = asyncWrapper(async (req, res, next) => {
     const {email} = req.decoded;
@@ -243,6 +244,58 @@ const removeApplicantFromTrack = asyncWrapper(async (req, res, next) => {
     });
 });
 
+// Announce track - إعلان عن تراك معين
+const announceTrack = asyncWrapper(async (req, res, next) => {
+    const { trackId } = req.params;
+    const { title, content, dateOfDelete } = req.body;
+    const { email } = req.decoded;
+
+    // التحقق من وجود المستخدم
+    const creator = await Member.findOne({ email });
+    if (!creator) {
+        return res.status(404).json({
+            success: false,
+            message: 'Creator not found'
+        });
+    }
+
+    // التحقق من وجود الـ track
+    const track = await Track.findById(trackId);
+    if (!track) {
+        return res.status(404).json({
+            success: false,
+            message: 'Track not found'
+        });
+    }
+
+    // إنشاء الإعلان
+    const newAnnouncement = await Announcement.create({
+        title,
+        content,
+        dateOfDelete,
+        creator: creator._id,
+        track: trackId
+    });
+
+    // إرسال الإعلان كرسالة لكل أعضاء الـ track
+    const messageData = {
+        title: `[${track.name}] ${title}`,
+        body: content,
+        date: new Date().toISOString()
+    };
+
+    await Member.updateMany(
+        { _id: { $in: track.members } },
+        { $push: { messages: messageData } }
+    );
+
+    res.status(201).json({
+        success: true,
+        message: 'Track announcement created and sent to members successfully',
+        data: newAnnouncement
+    });
+});
+
 module.exports = {
     createTrack,
     getAllTracks,
@@ -252,12 +305,6 @@ module.exports = {
     addMemberToTrack,
     removeMemberFromTrack,
     addApplicantToTrack,
-    removeApplicantFromTrack
+    removeApplicantFromTrack,
+    announceTrack
 };
-
-
-
-
-
-
-

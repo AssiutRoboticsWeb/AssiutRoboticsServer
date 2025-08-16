@@ -15,7 +15,12 @@ const announcementSchema = new mongoose.Schema({
   },
   creator: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' // لأن Admin و Student و Assistant كلهم من User
+    ref: 'Member' // لأن Admin و Student و Assistant كلهم من member
+  },
+  track: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Track',
+    required: true
   }
 });
 
