@@ -15,8 +15,7 @@ const trackSchema = new mongoose.Schema({
         }
     ],
     committee: {
-       type:String,
-       
+       type:String,  
     },
     members: [
         {
