@@ -74,12 +74,12 @@ const getTrackById = asyncWrapper(async (req, res, next) => {
     const { id } = req.params;
     
     const track = await Track.findById(id)
-        // .populate('courses', 'name description')
-        // .populate('committee', 'name email')
-        // .populate('members', 'name email')
-        // .populate('applicants', 'name email')
-        // .populate('superVisors', 'name email')
-        // .populate('HRs', 'name email');
+        .populate('courses', 'name description')
+        .populate('committee', 'name email')
+        .populate('members', 'name email')
+        .populate('applicants', 'name email')
+        .populate('superVisors', 'name email')
+        .populate('HRs', 'name email');
     
     if (!track) {
         return res.status(404).json({

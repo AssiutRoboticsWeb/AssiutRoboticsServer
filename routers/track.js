@@ -14,7 +14,11 @@ router.post('/',trackController.createTrack);
 router.get('/',trackController.getAllTracks);
 
 // Get single track by ID
-router.get('/:id',trackController.getTrackById);
+router.route("/:id").get(trackController.getTrackById)
+.get(trackController.getTrackById)
+.put(trackController.updateTrack)
+.delete(trackController.deleteTrack)
+
 
 // Update track by ID
 router.put('/:id',trackController.updateTrack);
@@ -37,6 +41,10 @@ router.put('/:trackId/applicants/:memberId',trackController.addApplicantToTrack)
 
 // Remove applicant from track
 router.delete('/:trackId/applicants/:memberId',trackController.removeApplicantFromTrack);
+// Remove applicant from track 
+//Router.delete("/:trackId/applicants/:memberId", trackController.removeApplicantFromTrack,(req,res,next)=>{
+//    next()
+//});
 
 // ====== Track Announcements ======
 
