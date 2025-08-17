@@ -17,7 +17,11 @@ const addAnnouncement = asyncWrapper(async (req, res) => {
         const track = await Track.findById(trackId);
         if (!track) throw createError(404, httpStatusText.FAIL, "Track not found");
     }
-
+    if(track)
+    // If the member is the head of the track's committee, allow adding related links
+    if (!(member.role === 'head' && String(track.committee) === String(member.committee))) {
+        throw createError(403, httpStatusText.FAIL, "You are not authorized to add this track");
+    }
     const newAnnouncement = await Announcement.create({
         title,
         content,

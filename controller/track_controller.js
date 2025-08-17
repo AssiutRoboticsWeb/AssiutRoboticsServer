@@ -16,7 +16,7 @@ const createTrack = asyncWrapper(async (req, res, next) => {
         });
     }
     const { name, description, courses, members, applicants, superVisors, HRs } = req.body;
-    
+
     const track = new Track({
         name,
         description,
