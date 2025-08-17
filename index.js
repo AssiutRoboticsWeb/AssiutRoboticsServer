@@ -18,8 +18,7 @@ const trackRouter = require('./routers/track.js');
 const courseRouter = require('./routers/course.js');
 const applicantRouter = require('./routers/applicant.js');
 const tracksysRouter = require('./routers/tracksys.js');
-const taskRouter = require('./routers/task.js');
-const ratingRouter = require('./routers/rating.js');
+
 
 
 
@@ -53,8 +52,7 @@ app.use("/tracks", trackRouter);
 app.use("/courses", courseRouter);
 app.use("/applicants", applicantRouter);
 app.use("/tracksys", tracksysRouter);
-app.use("/tasks", taskRouter);
-app.use("/rating", ratingRouter);
+
 
 
 

@@ -2,6 +2,13 @@ const express = require("express");
 const Router = express.Router();
 
 const courseController = require('../controller/course_controller');
+const jwt = require('../middleware/jwt');
+
+
+// ====== Member gets their tasks across courses ======
+Router.get("/my-tasks", jwt.verify, courseController.getMyCourseTasks);
+// ====== Completed Course Tasks ======
+Router.get("/tasks/completed", jwt.verify, courseController.getCompletedTasks);
 
 // ====== Course CRUD Operations ======
 
@@ -35,5 +42,33 @@ Router.delete("/:courseId/tasks/:taskId", courseController.removeTaskFromCourse)
 
 // Get all tasks for a course
 Router.get("/:courseId/tasks", courseController.getTasksForCourse);
+
+// Update a task inside a course
+Router.put("/:courseId/tasks/:taskId", courseController.updateTaskInCourse);
+
+
+
+
+
+// Member submits a task
+Router.post(
+  "/:courseId/tasks/:taskId/submit",
+  jwt.verify,
+  courseController.submitCourseTask
+);
+
+// Head rates a submission
+Router.put(
+  "/:courseId/tasks/:taskId/rate",
+  jwt.verify,
+  courseController.rateCourseTask
+);
+
+// Head lists submissions for a task
+Router.get(
+  "/:courseId/tasks/:taskId/submissions",
+  jwt.verify,
+  courseController.getSubmissionsForTask
+);
 
 module.exports = Router;

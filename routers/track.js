@@ -5,26 +5,18 @@ const trackController = require('../controller/track_controller');
 const jwt = require('../middleware/jwt');
 router.use(jwt.verify);
 
-// ====== Track CRUD Operations ======
+
 
 // Create a new track
 router.post('/',trackController.createTrack);
 
 // Get all tracks
 router.get('/',trackController.getAllTracks);
-
-// Get single track by ID
-router.route("/:id").get(trackController.getTrackById)
-.get(trackController.getTrackById)
-.put(trackController.updateTrack)
-.delete(trackController.deleteTrack)
-
-
-// Update track by ID
-router.put('/:id',trackController.updateTrack);
-
-// Delete track by ID
-router.delete('/:id',trackController.deleteTrack);
+// Get, Update, Delete track by ID
+router.route("/:id")
+  .get(trackController.getTrackById)    
+  .put(trackController.updateTrack)     
+  .delete(trackController.deleteTrack); 
 
 // ====== Track Member Management ======
 
@@ -41,14 +33,6 @@ router.put('/:trackId/applicants/:memberId',trackController.addApplicantToTrack)
 
 // Remove applicant from track
 router.delete('/:trackId/applicants/:memberId',trackController.removeApplicantFromTrack);
-// Remove applicant from track 
-//Router.delete("/:trackId/applicants/:memberId", trackController.removeApplicantFromTrack,(req,res,next)=>{
-//    next()
-//});
 
-// ====== Track Announcements ======
-
-// Announce track
-router.post('/:trackId/announce',trackController.announceTrack);
 
 module.exports = router;
