@@ -4,7 +4,6 @@ const httpStatusText = require("../utils/httpStatusText");
 const createError = require("../utils/createError");
 const Member = require("../mongoose.models/member");
 const Track = require("../mongoose.models/track");
-
 // إضافة إعلان
 const addAnnouncement = asyncWrapper(async (req, res) => {
     const { title, content, dateOfDelete, trackId } = req.body;
@@ -13,23 +12,39 @@ const addAnnouncement = asyncWrapper(async (req, res) => {
     const member = await Member.findOne({ email });
     if (!member) throw createError(404, httpStatusText.FAIL, "Member not found");
 
+    let track = null;
     if (trackId) {
-        const track = await Track.findById(trackId);
+        track = await Track.findById(trackId);
         if (!track) throw createError(404, httpStatusText.FAIL, "Track not found");
+        // Validate member is head and committee matches track's committee
+        if (!(member.role === 'head' && String(track.committee) === String(member.committee))) {
+            throw createError(403, httpStatusText.FAIL, "You are not authorized to add this track announcement");
+        }
     }
-    if(track)
-    // If the member is the head of the track's committee, allow adding related links
-    if (!(member.role === 'head' && String(track.committee) === String(member.committee))) {
-        throw createError(403, httpStatusText.FAIL, "You are not authorized to add this track");
-    }
+
     const newAnnouncement = await Announcement.create({
         title,
         content,
         dateOfDelete,
         creator: member._id,
-        track: trackId
+        track: trackId,
+        CreationDate: new Date()
     });
-
+    const messageData = {
+        title,
+        body: content,
+        date: new Date().toISOString(),
+        status: "unread", //  unread , read , archived
+        links: track ? [{
+            name: track.name,
+            url: `/apply/${track._id}` // edit to fit apply api
+        }] : []
+    };
+    // Add the announcement message to all members' messages array without overwriting old messages
+    await Member.updateMany(
+        {},
+        { $push: { messages: messageData } }
+    );
     res.status(201).json({
         status: httpStatusText.SUCCESS,
         data: newAnnouncement,
@@ -41,7 +56,20 @@ const addAnnouncement = asyncWrapper(async (req, res) => {
 const getAnnouncements = asyncWrapper(async (req, res) => {
     await Announcement.deleteMany({ dateOfDelete: { $lt: new Date() } });
 
-    const announcements = await Announcement.find()
+    const email = req.decoded.email;
+    const member = await Member.findOne({ email });
+    if (!member) throw createError(404, httpStatusText.FAIL, "Member not found");
+
+    // Only allow heads to fetch all announcements for their committee
+    if (member.role !== 'head') {
+        throw createError(403, httpStatusText.FAIL, "You are not authorized to view all announcements");
+    }
+
+    // Fetch only announcements for tracks in the member's committee
+    const tracks = await Track.find({ committee: member.committee }).select('_id');
+    const trackIds = tracks.map(t => t._id);
+
+    const announcements = await Announcement.find({ track: { $in: trackIds } })
         .populate('creator', 'name email role committee phoneNumber avatar')
         .populate('track', 'name description committee');
 
@@ -55,9 +83,18 @@ const getAnnouncements = asyncWrapper(async (req, res) => {
 // جلب إعلانات تراك محدد
 const getTrackAnnouncements = asyncWrapper(async (req, res) => {
     const { trackId } = req.params;
+    const email = req.decoded.email;
+
+    const member = await Member.findOne({ email });
+    if (!member) throw createError(404, httpStatusText.FAIL, "Member not found");
 
     const track = await Track.findById(trackId);
     if (!track) throw createError(404, httpStatusText.FAIL, "Track not found");
+
+    // Validate member is head and committee matches track's committee
+    if (!(member.role === 'head' && String(track.committee) === String(member.committee))) {
+        throw createError(403, httpStatusText.FAIL, "You are not authorized to view this track's announcements");
+    }
 
     await Announcement.deleteMany({ track: trackId, dateOfDelete: { $lt: new Date() } });
 
@@ -72,59 +109,49 @@ const getTrackAnnouncements = asyncWrapper(async (req, res) => {
     });
 });
 
-// إرسال إعلان لأعضاء التراك
-const sendTrackAnnouncementToMembers = asyncWrapper(async (req, res) => {
-    const { trackId, title, content, dateOfDelete } = req.body;
-    const email = req.decoded.email;
-
-    const creator = await Member.findOne({ email });
-    if (!creator) throw createError(404, httpStatusText.FAIL, "Creator not found");
-
-    const track = await Track.findById(trackId).populate('members');
-    if (!track) throw createError(404, httpStatusText.FAIL, "Track not found");
-
-    const newAnnouncement = await Announcement.create({
-        title,
-        content,
-        dateOfDelete,
-        creator: creator._id,
-        track: trackId
-    });
-
-    const messageData = {
-        title: `[${track.name}] ${title}`,
-        body: content,
-        date: new Date().toISOString()
-    };
-
-    await Member.updateMany(
-        { _id: { $in: track.members } },
-        { $push: { messages: messageData } }
-    );
-
-    res.status(201).json({
-        status: httpStatusText.SUCCESS,
-        data: {
-            announcement: newAnnouncement,
-            sentToMembers: track.members.length
-        },
-        message: `Track announcement sent to ${track.members.length} members`
-    });
-});
-
 // تعديل إعلان
 const updateAnnouncement = asyncWrapper(async (req, res) => {
     const { title, content, dateOfDelete } = req.body;
     const announcementId = req.params.id;
+    const email = req.decoded.email;
+
+    const member = await Member.findOne({ email });
+    if (!member) throw createError(404, httpStatusText.FAIL, "Member not found");
 
     const announcement = await Announcement.findById(announcementId);
     if (!announcement) throw createError(404, httpStatusText.FAIL, "Announcement not found");
+
+    let track = null;
+    if (announcement.track) {
+        track = await Track.findById(announcement.track);
+        if (!track) throw createError(404, httpStatusText.FAIL, "Track not found");
+        // Validate member is head and committee matches track's committee
+        if (!(member.role === 'head' && String(track.committee) === String(member.committee))) {
+            throw createError(403, httpStatusText.FAIL, "You are not authorized to update this announcement");
+        }
+    }
 
     announcement.title = title;
     announcement.content = content;
     announcement.dateOfDelete = dateOfDelete;
     await announcement.save();
-
+    // Create a new message reflecting the updated announcement
+    const messageData = {
+        title: announcement.title,
+        body: announcement.content,
+        date: new Date().toISOString(),
+        status: "unread",
+        links: track ? [{
+            name: track.name,
+            url: `/apply/${track._id}`
+        }] : []
+    };
+    // Optionally, you may want to remove old messages related to this announcement before pushing the new one.
+    // For now, just push the new message to all members
+    await Member.updateMany(
+        {},
+        { $push: { messages: messageData } }
+    );
     res.status(200).json({
         status: httpStatusText.SUCCESS,
         data: announcement,
@@ -135,8 +162,25 @@ const updateAnnouncement = asyncWrapper(async (req, res) => {
 // حذف إعلان
 const deleteAnnouncement = asyncWrapper(async (req, res) => {
     const announcementId = req.params.id;
-    const announcement = await Announcement.findByIdAndDelete(announcementId);
+    const email = req.decoded.email;
+
+    const member = await Member.findOne({ email });
+    if (!member) throw createError(404, httpStatusText.FAIL, "Member not found");
+
+    const announcement = await Announcement.findById(announcementId);
     if (!announcement) throw createError(404, httpStatusText.FAIL, "Announcement not found");
+
+    let track = null;
+    if (announcement.track) {
+        track = await Track.findById(announcement.track);
+        if (!track) throw createError(404, httpStatusText.FAIL, "Track not found");
+        // Validate member is head and committee matches track's committee
+        if (!(member.role === 'head' && String(track.committee) === String(member.committee))) {
+            throw createError(403, httpStatusText.FAIL, "You are not authorized to delete this announcement");
+        }
+    }
+
+    await Announcement.findByIdAndDelete(announcementId);
 
     res.status(200).json({
         status: httpStatusText.SUCCESS,
@@ -149,7 +193,47 @@ module.exports = {
     addAnnouncement,
     getAnnouncements,
     getTrackAnnouncements,
-    sendTrackAnnouncementToMembers,
+    // sendTrackAnnouncementToMembers,
     updateAnnouncement,
     deleteAnnouncement
 };
+
+
+/**
+ * API Documentation: Announcement Controller
+ *
+ * 1. Add Announcement (POST /announcements)
+ *    Headers:
+ *      - Authorization: Bearer <token>
+ *    Body:
+ *      {
+ *        "title": String,
+ *        "content": String,
+ *        "trackId": String (optional)
+ *      }
+ *
+ * 2. Get All Announcements (GET /announcements)
+ *    Headers:
+ *      - Authorization: Bearer <token>
+ *    Body: none
+ *
+ * 3. Get Track Announcements (GET /announcements/track/:trackId)
+ *    Headers:
+ *      - Authorization: Bearer <token>
+ *    Body: none
+ *
+ * 4. Update Announcement (PUT /announcements/:id)
+ *    Headers:
+ *      - Authorization: Bearer <token>
+ *    Body:
+ *      {
+ *        "title": String,
+ *        "content": String,
+ *        "dateOfDelete": Date (ISO string)
+ *      }
+ *
+ * 5. Delete Announcement (DELETE /announcements/:id)
+ *    Headers:
+ *      - Authorization: Bearer <token>
+ *    Body: none
+ */

@@ -27,12 +27,12 @@ router.put('/:trackId/members/:memberId',trackController.addMemberToTrack);
 router.delete('/:trackId/members/:memberId',trackController.removeMemberFromTrack);
 
 // ====== Track Applicant Management ======
+//----------------- No need for that it has been handled in applicantController--------------
+// // Add applicant to track
+// router.put('/:trackId/applicants/:memberId',trackController.addApplicantToTrack);
 
-// Add applicant to track
-router.put('/:trackId/applicants/:memberId',trackController.addApplicantToTrack);
-
-// Remove applicant from track
-router.delete('/:trackId/applicants/:memberId',trackController.removeApplicantFromTrack);
+// // Remove applicant from track
+// router.delete('/:trackId/applicants/:memberId',trackController.removeApplicantFromTrack);
 
 
 module.exports = router;

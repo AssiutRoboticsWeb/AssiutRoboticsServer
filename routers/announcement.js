@@ -6,22 +6,22 @@ const announcementController = require("../controller/announcement.controller");
 
 const jwt = require("../middleware/jwt");
 
-// إضافة إعلان
+// Add a new announcement
 Router.route("/add").post(jwt.verify, announcementController.addAnnouncement);
 
-// جلب كل الإعلانات
+// Get all announcements
 Router.route("/getAnnouncements")
         .get(announcementController.getAnnouncements);
 
-// جلب إعلانات تراك محدد
+// Get announcements for a specific track
 Router.route("/track/:trackId")
         .get(announcementController.getTrackAnnouncements);
 
-// إرسال إعلان لأعضاء التراك كرسائل
-Router.route("/track-message")
-        .post(jwt.verify, announcementController.sendTrackAnnouncementToMembers);
+// Send an announcement as a message to track members
+// Router.route("/track-message")
+//         .post(jwt.verify, announcementController.sendTrackAnnouncementToMembers);
 
-// تعديل وحذف إعلان
+// Update or delete an announcement by ID
 Router.route("/:id")
         .delete(announcementController.deleteAnnouncement)
         .put(announcementController.updateAnnouncement);

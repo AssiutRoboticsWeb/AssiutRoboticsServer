@@ -119,6 +119,16 @@ const memberSchema = new mongoose.Schema({
       type: String,
       required: [true, "message date is required"]
     }
+    ,
+    status: {
+      type: String,
+      enum: ["unread", "read", "archived"],
+      default: "unread"
+    },
+    links: [{
+      label: String,
+      url: String
+    }]
   }],
 
 

@@ -3,17 +3,15 @@ const Track = require('../mongoose.models/track');
 const createError = require('../utils/createError');
 const Member = require('../mongoose.models/member');
 
-
-
-
+// apply for track
 const createApplicant = asyncWrapper(async (req, res, next) => {
     const { trackId } = req.params;
-    
+
     const track = await Track.findById(trackId);
 
-    const {email} = req.decoded;
-    
-    const member = await Member.findOne({email});
+    const { email } = req.decoded;
+
+    const member = await Member.findOne({ email });
     if (!member) {
         return res.status(404).json({
             success: false,
@@ -34,7 +32,7 @@ const createApplicant = asyncWrapper(async (req, res, next) => {
         status: 'pending'
     });
     await track.save();
-    
+
     res.status(200).json({
         success: true,
         message: 'Applicant created successfully',
@@ -42,20 +40,18 @@ const createApplicant = asyncWrapper(async (req, res, next) => {
     });
 });
 
-
-
 const acceptApplicant = asyncWrapper(async (req, res, next) => {
     const { trackId, memberId } = req.params;
-    
+
     const track = await Track.findById(trackId);
-    
+
     if (!track) {
         return res.status(404).json({
             success: false,
             message: 'Track not found'
         });
     }
-    
+
     const member = await Member.findById(memberId);
     if (!member) {
         return res.status(404).json({
@@ -63,8 +59,24 @@ const acceptApplicant = asyncWrapper(async (req, res, next) => {
             message: 'Member not found'
         });
     }
-    
-    track.applicants.find((applicant) => applicant.member.equals(member._id)).status = 'accepted';
+
+    // Validate that the requester is head and committees match
+    const requester = await Member.findOne({ email: req.decoded.email });
+    if (!requester || requester.role !== "head" || requester.committee !== track.committee) {
+        return res.status(403).json({
+            success: false,
+            message: 'You are not allowed to accept applicants for this track'
+        });
+    }
+
+    const applicant = track.applicants.find((applicant) => applicant.member.equals(member._id));
+    if (!applicant) {
+        return res.status(404).json({
+            success: false,
+            message: 'Applicant not found in this track'
+        });
+    }
+    applicant.status = 'accepted';
 
     // Send acceptance message to the member
     const acceptanceMessage = {
@@ -72,14 +84,14 @@ const acceptApplicant = asyncWrapper(async (req, res, next) => {
         body: `Congratulations! Your application to join ${track.name} track has been accepted. Welcome to the team!`,
         date: new Date().toISOString()
     };
-    
+
     await Member.findByIdAndUpdate(
         memberId,
         { $push: { messages: acceptanceMessage } }
     );
-    
+
     await track.save();
-    
+
     res.status(200).json({
         success: true,
         message: 'Applicant accepted successfully and notification sent',
@@ -87,19 +99,18 @@ const acceptApplicant = asyncWrapper(async (req, res, next) => {
     });
 });
 
-
 const rejectApplicant = asyncWrapper(async (req, res, next) => {
     const { trackId, memberId } = req.params;
-    
+
     const track = await Track.findById(trackId);
-    
+
     if (!track) {
         return res.status(404).json({
             success: false,
             message: 'Track not found'
         });
     }
-    
+
     const member = await Member.findById(memberId);
     if (!member) {
         return res.status(404).json({
@@ -107,23 +118,39 @@ const rejectApplicant = asyncWrapper(async (req, res, next) => {
             message: 'Member not found'
         });
     }
-    
-    track.applicants.find((applicant) => applicant.member.equals(member._id)).status = 'rejected';
-    
+
+    // Validate that the requester is head and committees match
+    const requester = await Member.findOne({ email: req.decoded.email });
+    if (!requester || requester.role !== "head" || requester.committee !== track.committee) {
+        return res.status(403).json({
+            success: false,
+            message: 'You are not allowed to reject applicants for this track'
+        });
+    }
+
+    const applicant = track.applicants.find((applicant) => applicant.member.equals(member._id));
+    if (!applicant) {
+        return res.status(404).json({
+            success: false,
+            message: 'Applicant not found in this track'
+        });
+    }
+    applicant.status = 'rejected';
+
     // Send rejection message to the member
     const rejectionMessage = {
         title: `Application Update - ${track.name}`,
         body: `Thank you for your interest in joining ${track.name} track. Unfortunately, your application was not accepted at this time. We encourage you to apply again in the future.`,
         date: new Date().toISOString()
     };
-    
+
     await Member.findByIdAndUpdate(
         memberId,
         { $push: { messages: rejectionMessage } }
     );
-    
+
     await track.save();
-    
+
     res.status(200).json({
         success: true,
         message: 'Applicant rejected successfully and notification sent',
@@ -131,10 +158,8 @@ const rejectApplicant = asyncWrapper(async (req, res, next) => {
     });
 });
 
-
-
 const getApplicants = asyncWrapper(async (req, res, next) => {
-    const {email} = req.decoded;
+    const { email } = req.decoded;
     const member = await Member.findOne({ email });
     if (!member) {
         return res.status(404).json({
@@ -142,15 +167,15 @@ const getApplicants = asyncWrapper(async (req, res, next) => {
             message: 'Member not found'
         });
     }
-    
-    if(member.role !== "head"){
+
+    if (member.role !== "head") {
         return res.status(403).json({
             success: false,
             message: 'You are not allowed to get applicants'
         });
     }
 
-    const tracks = await Track.find({ committee: member.committee }, {name:1, applicants:1, committee:1})
+    const tracks = await Track.find({ committee: member.committee }, { name: 1, applicants: 1, committee: 1 })
         .populate('applicants.member', 'name email phoneNumber committee gender');
 
     res.status(200).json({
@@ -164,7 +189,7 @@ const getApplicants = asyncWrapper(async (req, res, next) => {
 const getTrackApplicants = asyncWrapper(async (req, res, next) => {
     const { trackId } = req.params;
     const { email } = req.decoded;
-    
+
     const member = await Member.findOne({ email });
     if (!member) {
         return res.status(404).json({
@@ -172,18 +197,18 @@ const getTrackApplicants = asyncWrapper(async (req, res, next) => {
             message: 'Member not found'
         });
     }
-    
+
     const track = await Track.findById(trackId)
         .populate('applicants.member', 'name email phoneNumber committee gender avatar');
-    
+
     if (!track) {
         return res.status(404).json({
             success: false,
             message: 'Track not found'
         });
     }
-    
-    // Check if user has permission (head of same committee or admin)
+
+    // Check if user has permission (head of same committee)
     if (member.role !== "head" || member.committee !== track.committee) {
         return res.status(403).json({
             success: false,
@@ -208,7 +233,7 @@ const getTrackApplicants = asyncWrapper(async (req, res, next) => {
 // Get user's own applications
 const getMyApplications = asyncWrapper(async (req, res, next) => {
     const { email } = req.decoded;
-    
+
     const member = await Member.findOne({ email });
     if (!member) {
         return res.status(404).json({
@@ -216,13 +241,13 @@ const getMyApplications = asyncWrapper(async (req, res, next) => {
             message: 'Member not found'
         });
     }
-    
+
     // Find all tracks where this member has applied
-    const tracks = await Track.find({ 
-        'applicants.member': member._id 
-    }, {name: 1, description: 1, committee: 1, applicants: 1})
-    .populate('applicants.member', 'name email');
-    
+    const tracks = await Track.find({
+        'applicants.member': member._id
+    }, { name: 1, description: 1, committee: 1, applicants: 1 })
+        .populate('applicants.member', 'name email');
+
     // Filter to show only this member's applications
     const myApplications = tracks.map(track => {
         const myApplication = track.applicants.find(app => app.member._id.equals(member._id));
@@ -239,17 +264,13 @@ const getMyApplications = asyncWrapper(async (req, res, next) => {
             }
         };
     });
-    
+
     res.status(200).json({
         success: true,
         data: myApplications,
         message: 'Your applications fetched successfully'
     });
 });
-
-
-
-
 
 module.exports = {
     createApplicant,
@@ -259,3 +280,28 @@ module.exports = {
     getTrackApplicants,
     getMyApplications
 };
+
+
+// API: POST /tracks/:trackId/apply
+// Header: Authorization: Bearer <token>
+// Body: none
+
+// API: POST /tracks/:trackId/applicants/:memberId/accept
+// Header: Authorization: Bearer <token>
+// Body: none
+
+// API: POST /tracks/:trackId/applicants/:memberId/reject
+// Header: Authorization: Bearer <token>
+// Body: none
+
+// API: GET /applicants
+// Header: Authorization: Bearer <token>
+// Body: none
+
+// API: GET /tracks/:trackId/applicants
+// Header: Authorization: Bearer <token>
+// Body: none
+
+// API: GET /my-applications
+// Header: Authorization: Bearer <token>
+// Body: none
