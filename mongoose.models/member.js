@@ -350,8 +350,7 @@ memberSchema.virtual('isActive').get(function() {
   return this.role !== "not accepted" && this.verified;
 });
 
-// Index for better query performance
-memberSchema.index({ email: 1 });
+// Database indexes (removed duplicate email index)
 memberSchema.index({ committee: 1 });
 memberSchema.index({ role: 1 });
 memberSchema.index({ verified: 1 });
