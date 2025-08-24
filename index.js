@@ -5,12 +5,12 @@ const { config, validateEnvironment } = require('./config/environment');
 const { connectDB } = require('./config/database');
 const { healthCheck, lightHealthCheck } = require('./middleware/healthCheck');
 const { cacheStats, clearCache } = require('./middleware/cache');
+const { setupCORS } = require('./middleware/cors');
 
 // Validate environment variables
 validateEnvironment();
 
 const express = require("express");
-const cors = require('cors');
 const bodyParser = require('body-parser');
 
 // Import routers
@@ -36,8 +36,10 @@ const app = express();
 // Connect to database
 connectDB();
 
-// Middleware
-app.use(cors());
+// Setup CORS middleware
+setupCORS(app);
+
+// Other middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -47,6 +49,39 @@ app.set('view engine', 'ejs');
 // Health check routes (before other routes for load balancer health checks)
 app.get("/health", healthCheck);
 app.get("/health/light", lightHealthCheck);
+
+// CORS test endpoint
+app.get("/cors-test", (req, res) => {
+    console.log('CORS Test Endpoint Hit:', {
+        method: req.method,
+        url: req.url,
+        origin: req.headers.origin,
+        host: req.headers.host,
+        userAgent: req.headers['user-agent'],
+        timestamp: new Date().toISOString()
+    });
+    
+    res.status(200).json({
+        success: true,
+        message: "CORS test endpoint",
+        timestamp: new Date().toISOString(),
+        origin: req.headers.origin || 'none',
+        method: req.method,
+        headers: req.headers
+    });
+});
+
+// CORS preflight test endpoint
+app.options("/cors-test", (req, res) => {
+    console.log('CORS Preflight Test Endpoint Hit:', {
+        method: req.method,
+        url: req.url,
+        origin: req.headers.origin,
+        timestamp: new Date().toISOString()
+    });
+    
+    res.status(200).end();
+});
 
 // Cache management routes (admin only)
 app.get("/cache/stats", cacheStats);
@@ -101,12 +136,27 @@ app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
     const statusText = err.statusText || httpStatusText.ERROR;
     
+    // Log detailed error information
     console.error(`[Error ${statusCode}] ${err.message}`, {
         stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
         url: req.url,
         method: req.method,
+        origin: req.headers.origin,
+        userAgent: req.headers['user-agent'],
         timestamp: new Date().toISOString()
     });
+    
+    // Handle CORS errors specifically
+    if (err.message === 'Not allowed by CORS') {
+        console.log(`CORS Error: Origin ${req.headers.origin} not allowed`);
+        return res.status(403).json({
+            success: false,
+            statusText: 'FORBIDDEN',
+            message: 'CORS policy violation: Origin not allowed',
+            timestamp: new Date().toISOString(),
+            origin: req.headers.origin
+        });
+    }
     
     res.status(statusCode).json({
         success: false,
