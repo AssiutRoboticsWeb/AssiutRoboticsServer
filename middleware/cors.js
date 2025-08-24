@@ -92,14 +92,39 @@ const productionCorsOptions = {
   maxAge: 86400,
 };
 
+// Vercel-specific CORS options
+const vercelCorsOptions = {
+  origin: '*', // Allow all origins for Vercel
+  credentials: false, // Disable credentials for Vercel
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+    'X-API-Key',
+    'Cache-Control',
+    'Pragma',
+  ],
+  exposedHeaders: ['Content-Length', 'Content-Type', 'X-Requested-With'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false,
+  maxAge: 86400,
+};
+
 // CORS middleware function
 const setupCORS = app => {
   console.log('Setting up CORS middleware...');
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Platform: ${process.env.VERCEL ? 'Vercel' : 'Other'}`);
 
-  // Use production CORS temporarily for troubleshooting
+  // Use Vercel-specific CORS if on Vercel
   let currentCorsOptions;
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.VERCEL) {
+    console.log('Using Vercel-specific CORS configuration');
+    currentCorsOptions = vercelCorsOptions;
+  } else if (process.env.NODE_ENV === 'production') {
     console.log('Using production CORS configuration (permissive for troubleshooting)');
     currentCorsOptions = productionCorsOptions;
   } else {
@@ -121,7 +146,7 @@ const setupCORS = app => {
       res.header('Access-Control-Allow-Origin', '*');
     }
 
-    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Credentials', currentCorsOptions.credentials ? 'true' : 'false');
     res.header(
       'Access-Control-Allow-Methods',
       currentCorsOptions.methods.join(', ')
@@ -151,7 +176,7 @@ const setupCORS = app => {
       res.header('Access-Control-Allow-Origin', '*');
     }
 
-    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Credentials', currentCorsOptions.credentials ? 'true' : 'false');
     res.header(
       'Access-Control-Allow-Methods',
       currentCorsOptions.methods.join(', ')
@@ -178,5 +203,6 @@ module.exports = {
   corsOptions,
   devCorsOptions,
   productionCorsOptions,
+  vercelCorsOptions,
   setupCORS,
 };
