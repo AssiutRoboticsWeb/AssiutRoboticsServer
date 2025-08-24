@@ -216,8 +216,8 @@ const memberSchema = new mongoose.Schema({
     required: [true, "Committee is required"],
     trim: true,
     enum: {
-      values: ["Software", "Hardware", "Media", "HR", "Marketing", "Logistics"],
-      message: "Committee must be one of: Software, Hardware, Media, HR, Marketing, Logistics"
+      values: ["Software", "Hardware", "Media", "HR", "Marketing", "Logistics", "web", "OC"],
+      message: "Committee must be one of: Software, Hardware, Media, HR, Marketing, Logistics, web, OC"
     }
   },
   gender: {
@@ -355,15 +355,18 @@ memberSchema.index({ committee: 1 });
 memberSchema.index({ role: 1 });
 memberSchema.index({ verified: 1 });
 
-// Pre-save middleware to check registration deadline
+// Pre-save middleware to check registration deadline (only for new documents)
 memberSchema.pre('save', async function(next) {
   try {
-    const deadline = new Date(config.app.registrationDeadline);
-    if (Date.now() > deadline.getTime()) {
-      const error = new Error("Registration is closed");
-      error.statusCode = 400;
-      error.statusText = 'FAIL';
-      return next(error);
+    // Only check registration deadline for new documents (not updates)
+    if (this.isNew) {
+      const deadline = new Date(config.app.registrationDeadline);
+      if (Date.now() > deadline.getTime()) {
+        const error = new Error("Registration is closed");
+        error.statusCode = 400;
+        error.statusText = 'FAIL';
+        return next(error);
+      }
     }
     next();
   } catch (error) {

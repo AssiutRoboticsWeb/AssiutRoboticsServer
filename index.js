@@ -101,6 +101,30 @@ app.get("/cors-debug", (req, res) => {
     });
 });
 
+// JWT test endpoint
+app.get("/jwt-test", async (req, res) => {
+    try {
+        const jwt = require('./middleware/jwt');
+        const testPayload = { email: 'test@example.com', test: true };
+        const token = await jwt.generateToken(testPayload, '1h');
+        
+        res.status(200).json({
+            success: true,
+            message: "JWT test endpoint",
+            timestamp: new Date().toISOString(),
+            token: token,
+            payload: testPayload
+        });
+    } catch (error) {
+        console.error("JWT test error:", error);
+        res.status(500).json({
+            success: false,
+            message: "JWT test failed",
+            error: error.message
+        });
+    }
+});
+
 // Cache management routes (admin only)
 app.get("/cache/stats", cacheStats);
 app.delete("/cache/clear", clearCache);

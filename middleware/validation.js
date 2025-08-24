@@ -38,7 +38,7 @@ const validateMemberRegistration = [
         .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
     
     body('committee')
-        .isIn(['Software', 'Hardware', 'Media', 'HR', 'Marketing', 'Logistics'])
+        .isIn(['Software', 'Hardware', 'Media', 'HR', 'Marketing', 'Logistics', 'web', 'OC'])
         .withMessage('Invalid committee selection'),
     
     body('gender')
@@ -130,7 +130,7 @@ const validateMemberId = [
  */
 const validateCommittee = [
     param('com')
-        .isIn(['Software', 'Hardware', 'Media', 'HR', 'Marketing', 'Logistics'])
+        .isIn(['Software', 'Hardware', 'Media', 'HR', 'Marketing', 'Logistics', 'web', 'OC'])
         .withMessage('Invalid committee selection'),
     
     handleValidationErrors
