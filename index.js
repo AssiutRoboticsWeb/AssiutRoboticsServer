@@ -67,7 +67,13 @@ app.get("/cors-test", (req, res) => {
         timestamp: new Date().toISOString(),
         origin: req.headers.origin || 'none',
         method: req.method,
-        headers: req.headers
+        environment: process.env.NODE_ENV || 'development',
+        corsHeaders: {
+            'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+            'Access-Control-Allow-Credentials': res.getHeader('Access-Control-Allow-Credentials'),
+            'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+            'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers')
+        }
     });
 });
 
@@ -81,6 +87,18 @@ app.options("/cors-test", (req, res) => {
     });
     
     res.status(200).end();
+});
+
+// Simple CORS test for production debugging
+app.get("/cors-debug", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "CORS debug endpoint",
+        timestamp: new Date().toISOString(),
+        origin: req.headers.origin || 'none',
+        environment: process.env.NODE_ENV || 'development',
+        headers: req.headers
+    });
 });
 
 // Cache management routes (admin only)
