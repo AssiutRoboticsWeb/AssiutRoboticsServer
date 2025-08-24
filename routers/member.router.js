@@ -6,6 +6,21 @@ const multer = require("multer");
 const otp = require("../utils/otp");
 const { config } = require("../config/environment");
 const { uploadToCloud } = require("../utils/cloudinary");
+const { 
+    generalLimiter, 
+    authLimiter, 
+    uploadLimiter, 
+    otpLimiter 
+} = require("../middleware/rateLimiter");
+const {
+    validateMemberRegistration,
+    validateMemberLogin,
+    validatePasswordChange,
+    validateOTPGeneration,
+    validateOTPVerification,
+    validateMemberId,
+    validateCommittee
+} = require("../middleware/validation");
 
 // Multer configuration for file uploads
 const storage = multer.memoryStorage();
@@ -34,8 +49,9 @@ const upload = multer({
     }
 });
 
-// Profile image upload route
+// Profile image upload route with rate limiting
 Router.route("/changeProfileImage").post(
+    uploadLimiter,
     upload.single("image"),
     async (req, res, next) => {
         try {
@@ -69,33 +85,93 @@ Router.route("/changeProfileImage").post(
     memberController.changeProfileImage
 );
 
-// Authentication routes
-Router.route("/register").post(memberController.register);
-Router.route("/login").post(memberController.login);
-Router.route("/verify").get(JWT.verify, memberController.verify);
+// Authentication routes with rate limiting and validation
+Router.route("/register").post(
+    authLimiter,
+    validateMemberRegistration,
+    memberController.register
+);
+
+Router.route("/login").post(
+    authLimiter,
+    validateMemberLogin,
+    memberController.login
+);
+
+Router.route("/verify").get(
+    generalLimiter,
+    JWT.verify, 
+    memberController.verify
+);
 
 // Email verification
 Router.route("/verifyEmail/:token").get(
+    generalLimiter,
     JWT.verify,
     memberController.verifyEmail
 );
 
-// Password management
-Router.route("/changePassword").post(memberController.changePass);
-Router.route("/generateOTP").post(memberController.generateOTP);
-Router.route("/verifyOTP").post(memberController.verifyOTP);
+// Password management with rate limiting and validation
+Router.route("/changePassword").post(
+    authLimiter,
+    validatePasswordChange,
+    memberController.changePass
+);
 
-// Member management
-Router.route("/getAllMembers").get(memberController.getAllMembers);
-Router.route("/get/:com").get(memberController.getCommittee);
-Router.route("/confirm").post(JWT.verify, memberController.confirm);
+Router.route("/generateOTP").post(
+    otpLimiter,
+    validateOTPGeneration,
+    memberController.generateOTP
+);
 
-// Role management
-Router.route("/changeHead").post(JWT.verify, memberController.changeHead);
-Router.route("/changeVice").post(JWT.verify, memberController.changeVice);
+Router.route("/verifyOTP").post(
+    otpLimiter,
+    validateOTPVerification,
+    memberController.verifyOTP
+);
 
-// HR and rating
-Router.route("/hr").post(JWT.verify, memberController.controlHR);
-Router.route("/rate").post(JWT.verify, memberController.rate);
+// Member management with general rate limiting
+Router.route("/getAllMembers").get(
+    generalLimiter,
+    memberController.getAllMembers
+);
+
+Router.route("/get/:com").get(
+    generalLimiter,
+    validateCommittee,
+    memberController.getCommittee
+);
+
+Router.route("/confirm").post(
+    generalLimiter,
+    JWT.verify, 
+    memberController.confirm
+);
+
+// Role management with admin rate limiting
+Router.route("/changeHead").post(
+    generalLimiter,
+    JWT.verify, 
+    memberController.changeHead
+);
+
+Router.route("/changeVice").post(
+    generalLimiter,
+    JWT.verify, 
+    memberController.changeVice
+);
+
+// HR and rating with general rate limiting
+Router.route("/hr").post(
+    generalLimiter,
+    JWT.verify, 
+    memberController.controlHR
+);
+
+Router.route("/rate").post(
+    generalLimiter,
+    JWT.verify, 
+    memberController.rate
+);
 
 module.exports = Router;
