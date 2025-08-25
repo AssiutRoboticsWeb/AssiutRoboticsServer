@@ -1,7 +1,5 @@
 const { config, validateEnvironment } = require('./config/environment');
 const { connectDB } = require('./config/database');
-const { healthCheck, lightHealthCheck } = require('./middleware/healthCheck');
-const { cacheStats, clearCache } = require('./middleware/cache');
 
 // Validate environment variables
 validateEnvironment();
@@ -41,14 +39,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // View engine
 app.set('view engine', 'ejs');
 
-// Health check routes (before other routes for load balancer health checks)
-app.get("/health", healthCheck);
-app.get("/health/light", lightHealthCheck);
-
-// Cache management routes (admin only)
-app.get("/cache/stats", cacheStats);
-app.delete("/cache/clear", clearCache);
-
 // API Routes
 app.use("/members", memberRouter);
 app.use("/blogs", blogRouter);
@@ -64,22 +54,22 @@ app.use("/courses", courseRouter);
 app.use("/applicants", applicantRouter);
 app.use("/tracksys", tracksysRouter);
 
+// Health check route
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "API is working ✅",
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Default route
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
         message: "Assiut Robotics Server API",
-        version: "2.0.0",
-        timestamp: new Date().toISOString(),
-        documentation: "/health",
-        status: "operational",
-        features: [
-            "Health monitoring",
-            "Rate limiting",
-            "Input validation",
-            "Caching system",
-            "Comprehensive logging"
-        ]
+        version: "1.0.0",
+        timestamp: new Date().toISOString()
     });
 });
 
@@ -87,9 +77,7 @@ app.get("/", (req, res) => {
 app.use("*", (req, res) => {
     res.status(404).json({
         success: false,
-        message: "API route not found",
-        timestamp: new Date().toISOString(),
-        path: req.originalUrl
+        message: "API route not found"
     });
 });
 
@@ -109,7 +97,6 @@ app.use((err, req, res, next) => {
         success: false,
         statusText,
         message: statusCode === 500 ? "Internal Server Error" : err.message,
-        timestamp: new Date().toISOString(),
         ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
 });
@@ -131,10 +118,6 @@ process.on('SIGINT', async () => {
 const server = app.listen(config.port, () => {
     console.log(`🚀 Server is running on http://localhost:${config.port}`);
     console.log(`📅 Registration deadline: ${config.app.registrationDeadline}`);
-    console.log(`🔍 Health check: http://localhost:${config.port}/health`);
-    console.log(`⚡ Light health check: http://localhost:${config.port}/health/light`);
-    console.log(`💾 Cache stats: http://localhost:${config.port}/cache/stats`);
-    console.log(`🧹 Clear cache: DELETE http://localhost:${config.port}/cache/clear`);
 });
 
 // Handle server errors
