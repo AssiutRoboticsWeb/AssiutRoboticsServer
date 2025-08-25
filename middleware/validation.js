@@ -108,7 +108,7 @@ const validateOTPVerification = [
     
     body('otp')
         .isLength({ min: 6, max: 6 })
-        .matches(/^\d{6}$/)
+        .isNumeric()
         .withMessage('OTP must be a 6-digit number'),
     
     handleValidationErrors
@@ -119,7 +119,7 @@ const validateOTPVerification = [
  */
 const validateMemberId = [
     param('memberId')
-        .matches(/^[0-9a-fA-F]{24}$/)
+        .isMongoId()
         .withMessage('Invalid member ID format'),
     
     handleValidationErrors
@@ -154,12 +154,12 @@ const validateTaskCreation = [
     body('deadline')
         .optional()
         .isISO8601()
-        .withMessage('Deadline must be a valid ISO 8601 date'),
+        .withMessage('Deadline must be a valid date'),
     
     body('points')
         .optional()
-        .isFloat({ min: 0 })
-        .withMessage('Points must be a non-negative number'),
+        .isInt({ min: 0 })
+        .withMessage('Points must be a non-negative integer'),
     
     handleValidationErrors
 ];
@@ -169,12 +169,8 @@ const validateTaskCreation = [
  */
 const validateTaskRating = [
     body('rate')
-        .isFloat({ min: 0, max: 100 })
-        .custom((value) => {
-            const num = parseFloat(value);
-            return Number.isInteger(num);
-        })
-        .withMessage('Rate must be an integer between 0 and 100'),
+        .isInt({ min: 0, max: 100 })
+        .withMessage('Rate must be between 0 and 100'),
     
     body('notes')
         .optional()

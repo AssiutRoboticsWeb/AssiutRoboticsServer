@@ -6,72 +6,84 @@ const { config } = require('../config/environment');
  * Provides detailed system status including database, memory, and uptime
  */
 const healthCheck = async (req, res) => {
-    const startTime = Date.now();
-    
     try {
-        // Check database connection
+        const startTime = Date.now();
+        
+        // System information
+        const systemInfo = {
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            cpu: process.cpuUsage(),
+            platform: process.platform,
+            nodeVersion: process.version,
+            pid: process.pid
+        };
+        
+        // Database health check
         let dbStatus = 'disconnected';
         let dbResponseTime = 0;
         
-        try {
-            const dbStartTime = Date.now();
-            if (mongoose.connection.readyState === 1) {
+        if (mongoose.connection.readyState === 1) {
+            const dbStart = Date.now();
+            try {
+                await mongoose.connection.db.admin().ping();
+                dbResponseTime = Date.now() - dbStart;
                 dbStatus = 'connected';
-                dbResponseTime = Date.now() - dbStartTime;
-            } else {
-                dbStatus = 'disconnected';
+            } catch (error) {
+                dbStatus = 'error';
+                console.error('Database ping failed:', error.message);
             }
-        } catch (error) {
-            dbStatus = 'error';
-            console.error('Database health check error:', error.message);
         }
-
-        // Check memory usage
-        const memUsage = process.memoryUsage();
-        const totalMemory = require('os').totalmem();
-        const usedMemory = totalMemory - require('os').freemem();
-        const memoryPercentage = Math.round((usedMemory / totalMemory) * 100);
-
-        // Determine overall health status
-        const isHealthy = dbStatus === 'connected' || process.env.NODE_ENV === 'test';
-        const status = isHealthy ? 'healthy' : 'unhealthy';
-        const statusCode = isHealthy ? 200 : 503;
-
+        
+        // Environment check
+        const envStatus = {
+            nodeEnv: process.env.NODE_ENV || 'development',
+            port: config.port,
+            database: dbStatus,
+            smtp: !!(config.smtp.user && config.smtp.pass),
+            cloudinary: !!(config.cloudinary.cloudName && config.cloudinary.apiKey),
+            jwt: !!config.jwtSecret
+        };
+        
+        // Overall health status
+        const isHealthy = dbStatus === 'connected' && 
+                         envStatus.smtp && 
+                         envStatus.cloudinary && 
+                         envStatus.jwt;
+        
+        const responseTime = Date.now() - startTime;
+        
         const healthData = {
-            success: true,
-            status,
+            status: isHealthy ? 'healthy' : 'unhealthy',
             timestamp: new Date().toISOString(),
-            uptime: process.uptime(),
-            environment: {
-                nodeEnv: config.nodeEnv,
-                port: config.port
-            },
+            responseTime: `${responseTime}ms`,
             version: '2.0.0',
+            environment: envStatus,
             database: {
                 status: dbStatus,
-                responseTime: dbResponseTime
+                responseTime: `${dbResponseTime}ms`,
+                connectionString: config.mongoUrl ? 'Configured' : 'Missing'
             },
-            memory: {
-                used: Math.round(usedMemory / 1024 / 1024), // MB
-                total: Math.round(totalMemory / 1024 / 1024), // MB
-                percentage: memoryPercentage
-            },
+            system: systemInfo,
             checks: {
                 database: dbStatus === 'connected',
-                smtp: !!config.smtp.user && !!config.smtp.pass,
-                cloudinary: !!(config.cloudinary.cloudName && config.cloudinary.apiKey),
-                jwt: !!config.jwtSecret && config.jwtSecret.length >= 32
+                smtp: envStatus.smtp,
+                cloudinary: envStatus.cloudinary,
+                jwt: envStatus.jwt
             }
         };
-
+        
+        const statusCode = isHealthy ? 200 : 503;
+        
         res.status(statusCode).json(healthData);
+        
     } catch (error) {
         console.error('Health check error:', error);
-        res.status(503).json({
-            success: false,
+        res.status(500).json({
             status: 'error',
+            timestamp: new Date().toISOString(),
             message: 'Health check failed',
-            timestamp: new Date().toISOString()
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal error'
         });
     }
 };
@@ -80,23 +92,16 @@ const healthCheck = async (req, res) => {
  * Lightweight health check for load balancers
  */
 const lightHealthCheck = (req, res) => {
-    try {
-        const isHealthy = mongoose.connection.readyState === 1 || process.env.NODE_ENV === 'test';
-        const status = isHealthy ? 'ok' : 'error';
-        
-        res.status(200).json({
-            status,
-            timestamp: new Date().toISOString(),
-            uptime: process.uptime()
-        });
-    } catch (error) {
-        console.error('Light health check error:', error);
-        res.status(200).json({
-            status: 'ok',
-            timestamp: new Date().toISOString(),
-            uptime: process.uptime()
-        });
-    }
+    const isHealthy = mongoose.connection.readyState === 1;
+    const statusCode = isHealthy ? 200 : 503;
+    
+    res.status(statusCode).json({
+        status: isHealthy ? 'ok' : 'error',
+        timestamp: new Date().toISOString()
+    });
 };
 
-module.exports = { healthCheck, lightHealthCheck };
+module.exports = {
+    healthCheck,
+    lightHealthCheck
+};

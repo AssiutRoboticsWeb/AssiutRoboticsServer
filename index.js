@@ -1,6 +1,3 @@
-// Load environment variables first
-require('dotenv').config();
-
 const { config, validateEnvironment } = require('./config/environment');
 const { connectDB } = require('./config/database');
 const { healthCheck, lightHealthCheck } = require('./middleware/healthCheck');
@@ -117,53 +114,50 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Graceful shutdown and server start
-const PORT = process.env.PORT || 3000;
-let server;
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    await require('./config/database').disconnectDB();
+    process.exit(0);
+});
 
-// Only start server if this file is run directly (not imported for testing)
-if (require.main === module) {
-    server = app.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT}`);
-        console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-        console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-        console.log(`📚 API docs: http://localhost:${PORT}/`);
-    });
+process.on('SIGINT', async () => {
+    console.log('SIGINT received, shutting down gracefully');
+    await require('./config/database').disconnectDB();
+    process.exit(0);
+});
 
-    // Graceful shutdown
-    process.on('SIGTERM', () => {
-        console.log('SIGTERM received, shutting down gracefully...');
-        server.close(() => {
-            console.log('Process terminated');
-            process.exit(0);
-        });
-    });
+// Start server
+const server = app.listen(config.port, () => {
+    console.log(`🚀 Server is running on http://localhost:${config.port}`);
+    console.log(`📅 Registration deadline: ${config.app.registrationDeadline}`);
+    console.log(`🔍 Health check: http://localhost:${config.port}/health`);
+    console.log(`⚡ Light health check: http://localhost:${config.port}/health/light`);
+    console.log(`💾 Cache stats: http://localhost:${config.port}/cache/stats`);
+    console.log(`🧹 Clear cache: DELETE http://localhost:${config.port}/cache/clear`);
+});
 
-    process.on('SIGINT', () => {
-        console.log('SIGINT received, shutting down gracefully...');
-        server.close(() => {
-            console.log('Process terminated');
-            process.exit(0);
-        });
-    });
-
-    // Handle uncaught exceptions
-    process.on('uncaughtException', (err) => {
-        console.error('Uncaught Exception:', err);
-        // Only exit in production, allow tests to continue
-        if (process.env.NODE_ENV === 'production') {
+// Handle server errors
+server.on('error', (error) => {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+    
+    const bind = typeof config.port === 'string' ? 'Pipe ' + config.port : 'Port ' + config.port;
+    
+    switch (error.code) {
+        case 'EACCES':
+            console.error(`${bind} requires elevated privileges`);
             process.exit(1);
-        }
-    });
-
-    process.on('unhandledRejection', (reason, promise) => {
-        console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-        // Only exit in production, allow tests to continue
-        if (process.env.NODE_ENV === 'production') {
+            break;
+        case 'EADDRINUSE':
+            console.error(`${bind} is already in use`);
             process.exit(1);
-        }
-    });
-}
+            break;
+        default:
+            throw error;
+    }
+});
 
 module.exports = app;
 
