@@ -71,41 +71,14 @@ const devCorsOptions = {
   maxAge: 86400,
 };
 
-// Production CORS options (more permissive for troubleshooting)
-const productionCorsOptions = {
-  origin: true, // Allow all origins temporarily for troubleshooting
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Origin',
-    'X-Requested-With',
-    'Content-Type',
-    'Accept',
-    'Authorization',
-    'X-API-Key',
-    'Cache-Control',
-    'Pragma',
-  ],
-  exposedHeaders: ['Content-Length', 'Content-Type', 'X-Requested-With'],
-  optionsSuccessStatus: 200,
-  preflightContinue: false,
-  maxAge: 86400,
-};
-
 // CORS middleware function
 const setupCORS = app => {
   console.log('Setting up CORS middleware...');
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 
-  // Use production CORS temporarily for troubleshooting
-  let currentCorsOptions;
-  if (process.env.NODE_ENV === 'production') {
-    console.log('Using production CORS configuration (permissive for troubleshooting)');
-    currentCorsOptions = productionCorsOptions;
-  } else {
-    console.log('Using development CORS configuration');
-    currentCorsOptions = devCorsOptions;
-  }
+  // Use development CORS in non-production environments
+  const currentCorsOptions =
+    process.env.NODE_ENV === 'production' ? corsOptions : devCorsOptions;
 
   // Apply CORS middleware
   app.use(cors(currentCorsOptions));
@@ -117,7 +90,7 @@ const setupCORS = app => {
     const origin = req.headers.origin;
     if (origin) {
       res.header('Access-Control-Allow-Origin', origin);
-    } else {
+    } else if (process.env.NODE_ENV !== 'production') {
       res.header('Access-Control-Allow-Origin', '*');
     }
 
@@ -147,7 +120,7 @@ const setupCORS = app => {
 
     if (origin) {
       res.header('Access-Control-Allow-Origin', origin);
-    } else {
+    } else if (process.env.NODE_ENV !== 'production') {
       res.header('Access-Control-Allow-Origin', '*');
     }
 
@@ -177,6 +150,5 @@ const setupCORS = app => {
 module.exports = {
   corsOptions,
   devCorsOptions,
-  productionCorsOptions,
   setupCORS,
 };
