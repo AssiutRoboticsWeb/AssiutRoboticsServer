@@ -153,7 +153,7 @@ const login = asyncWrapper(async (req, res) => {
 
 
     console.log("body", req.body);
-    const { email, password, remember, ip} = req.body;
+    const { email, password, remember,ip } = req.body;
     const oldMember = await member.findOne({ email })
  
    
