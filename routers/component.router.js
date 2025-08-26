@@ -22,16 +22,9 @@ const OC_validate=asyncWrapper(async (req, res, next) => {
 })
 
 // Multer configuration
-const fs = require("fs");
-const path = require("path");
-
 const diskStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = "uploads/";
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir); // Save locally before uploading to Cloudinary
+        cb(null, "uploads/"); // Save locally before uploading to Cloudinary
     },
     filename: (req, file, cb) => {
         const ext = file.mimetype.split("/")[1];
