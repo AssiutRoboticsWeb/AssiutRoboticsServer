@@ -459,7 +459,7 @@ const changeVice = asyncWrapper(async(req,res) =>{
     }
     const newVice = await member.findOne({ _id: id });
     const committee = newVice.committee
-    const oldVice = await member.findOne({ committee, role: "vice" }) || 0;
+    const oldVice = await member.findOne({ committee, role: "Vice" }) || 0;
     
     if(Member.committee != newVice.committee){
         const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
