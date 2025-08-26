@@ -459,7 +459,8 @@ const changeVice = asyncWrapper(async(req,res) =>{
     }
     const newVice = await member.findOne({ _id: id });
     const committee = newVice.committee
-    const oldVice = await member.findOne({ committee, role: "vice" });
+    const oldVice = await member.findOne({ committee, role: "vice" }) || 0;
+    
     if(Member.committee != newVice.committee){
         const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
         throw error
@@ -475,7 +476,15 @@ const changeVice = asyncWrapper(async(req,res) =>{
         oldVice.role = "member";
         await oldVice.save()
     }
-
+    if(!oldVice) {
+        newVice.role = "vice";
+        await newVice.save();
+        return res.status(200).json({
+            status: httpStatusText.SUCCESS,
+            data: null,
+            message: "done",
+        });
+    }
     newVice.role = "vice";
     await newVice.save();
 
