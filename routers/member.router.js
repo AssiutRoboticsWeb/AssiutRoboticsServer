@@ -157,7 +157,7 @@ Router.route("/:memberId/editTask/:taskId").put(JWT.verify,memberController.edit
 
 Router.route("/:memberId/deleteTask/:taskId").delete(JWT.verify,memberController.deleteTask )
 
-Router.post("/members/:memberId/rateTask/:taskId",JWT.verify,memberController.rateMemberTask);
+Router.route("/:memberId/rateTask/:taskId").post(JWT.verify, memberController.rateMemberTask);
 
 
 const { google } = require('googleapis');
@@ -235,8 +235,9 @@ Router.get("/sendFeedBack/:memberId/:token", memberController.generateFeedBack);
 
 Router.post("/sendFeedBackEmail/:memberId", memberController.sendEmailFeedBack);
 
+Router.post("/addWarningAlert/:memberId", memberController.Add_warning_alert);
 
-
+Router.post("/removeWarningAlert/:memberId/:alert_warning_Id", memberController.remove_warning_alert);
 
 
 

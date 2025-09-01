@@ -52,7 +52,7 @@ const memberTaskSchema = new mongoose.Schema({
   },
   headPercent: {
     type: Number,
-    default: 50
+    default: 60
   },
   deadlineEvaluation: {
     type: Number,
@@ -60,8 +60,7 @@ const memberTaskSchema = new mongoose.Schema({
   },
   deadlinePercent: {
     type: Number,
-    default: 20,
-
+    default: 40,
   },
   rate: Number,
   points: Number, 
@@ -77,7 +76,7 @@ const hrRateSchema = new mongoose.Schema({
     type: String,
     required: [true, "member ID is required"]
   },
-  socialScore: {
+  meetingScore: {
     type: Number,
     default: 0,
   },
@@ -131,8 +130,6 @@ const memberSchema = new mongoose.Schema({
     }]
   }],
 
-
-
   committee: {
     type: String,
     required: [true, "committee is required"]
@@ -156,14 +153,32 @@ const memberSchema = new mongoose.Schema({
     type: String,
     default: "../all-images/default.png"
   },
-  rate: {
-    type: Number,
-  },
+  avg_rate: [
+    {
+      value: { type: Number, required: true },
+      month: { type: String, required: true }
+    }
+  ],  
   alerts: {
-    type: Number
+    type: [
+      {
+        addDate: { type: String, required: true },
+        header: { type: String, required: true },
+        body: { type: String },
+        link: { type: String, default: "#" }
+      }
+    ],
+    default: []
   },
   warnings: {
-    type: Number
+    type: [
+      {
+        header: { type: String, required: true },
+        body: { type: String },
+        link: { type: String, default: "#" }
+      }
+    ],
+    default: []
   },
   verified: {
     type: Boolean,
@@ -206,6 +221,7 @@ const memberSchema = new mongoose.Schema({
 })
 
 const createError = require("../utils/createError");
+const { required } = require('nodemon/lib/config');
 
 memberSchema.pre('save', async function (next) {
   if (Date.now() > new Date("2025-09-27")) {

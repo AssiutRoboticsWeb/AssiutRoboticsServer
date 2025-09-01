@@ -498,7 +498,9 @@ const changeVice = asyncWrapper(async(req,res) =>{
 const rate = async (req, res) => {
     try {
         console.log(req.decoded);
-        const committee = req.decoded.committee.split("-")[0];
+        const user = await member.findOne({ email: req.decoded.email });
+        console.log(user);
+        const committee = user.committee.split("-")[0];
         console.log(committee);
         if (committee == "HR") {
             const { ID, rate } = req.body;
@@ -508,19 +510,18 @@ const rate = async (req, res) => {
             // }else{
             //     MEMBER.rate=rate;
             // }
-            MEMBER.rate = rate;
-            if (rate < 6) {
-                MEMBER.alerts += 1;
-                if (MEMBER.alerts > 2) {
-                    MEMBER.warnings += 1;
-                    MEMBER.alerts = 0;
-
-                }
-            }
-            if (MEMBER.warnings > 2) {
-                console.log("delete");
-                await member.deleteOne({ _id: ID });
-            }
+            // MEMBER.rate = rate;
+            // if (rate < 6) {
+            //     MEMBER.alerts += 1;
+            //     if (MEMBER.alerts > 2) {
+            //         MEMBER.warnings += 1;
+            //         MEMBER.alerts = 0;
+            //     }
+            // }
+            // if (MEMBER.warnings > 2) {
+            //     console.log("delete");
+            //     await member.deleteOne({ _id: ID });
+            // }
             MEMBER.save();
             res.status(200).json({
                 status: httpStatusText.SUCCESS,
@@ -737,10 +738,9 @@ const deleteTask = asyncWrapper(
 
 const rateMemberTask = asyncWrapper(
     async (req, res) => {
- 
-          
-            const { headEvaluation} = req.body;
-            const { taskId, memberId } = req.params;
+
+        const { headEvaluation } = req.body;
+        const { taskId, memberId } = req.params;
             const email = req.decoded.email;
             const admin = await member.findOne({ email })
             const Member = await member.findOne({ _id: memberId, "tasks._id": taskId });
@@ -769,17 +769,12 @@ const rateMemberTask = asyncWrapper(
             }
 
 
-
+                // task rating 
                 task.headEvaluation = task.headPercent * task.points * headEvaluation / 10000;
-                if(task.submissionDate>task.deadline){
-
-                    const different= Math.ceil(  (task.submissionDate-task.deadline )/(1000*60*60*24)   );
-                    task.deadlinePercent=20 - different*2;
-
-                }
-                task.deadlineEvaluation = task.deadlinePercent* task.points  / 100;
-
-                task.rate=task.headEvaluation+task.deadlineEvaluation+0.3*task.points;
+                
+                // deadline calculated when USER submitted TASK 
+                task.rate=task.headEvaluation+task.deadlineEvaluation+0.4*task.points; // headEva + DeadlineEva + submissionEva
+                // end of task rating
             await Member.save();
 
             res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
@@ -822,7 +817,24 @@ const submitMemberTask = async (req, res) => {
         task.submissionFileId=fileId;
         task.downloadSubmissionUrl=downloadUrl;
         task.submissionDate = Date.now();
-
+        
+        // calc deadline 
+        const deadlineDate = new Date(task.deadline);
+        const submissionDate = new Date(task.submissionDate);
+        const diffInMs = submissionDate - deadlineDate;
+        const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+        // Calculate deadlinePercent: +10% for each day early (max 20), -20% for each day late (min -20)
+        if (diffInDays < 0) {
+            // Early submission: +10% per day early (no cap)
+            task.deadlinePercent = Math.abs(diffInDays) * 10;
+        } else if (diffInDays > 0) {
+            // Late submission: -20% per day late (no cap)
+            task.deadlinePercent = -diffInDays * 20;
+        } else {
+            // On time
+            task.deadlinePercent = 0;
+        }
+        task.deadlineEvaluation = task.deadlinePercent * task.points / 100;
         // Save the updated member data
         await Member.save();
 
@@ -834,15 +846,15 @@ const submitMemberTask = async (req, res) => {
     }
 };
 const updateTaskEvaluations = asyncWrapper(async (req, res) => {
-    const { month, memberId, socialScore, behaviorScore, interactionScore } = req.body;
+    const { month, memberId, meetingScore, behaviorScore, interactionScore } = req.body;
 
     // Validate inputs
     if (!memberId) {
         return res.status(400).json({ message: "بيانات غير صحيحة: memberId مفقود" });
     }
 
-    if (socialScore < 0 || socialScore > 100) {
-        return res.status(400).json({ message: "بيانات غير صحيحة: socialScore يجب أن يكون بين 0 و 100" });
+    if (meetingScore < 0 || meetingScore > 100) {
+        return res.status(400).json({ message: "بيانات غير صحيحة: meetingScore يجب أن يكون بين 0 و 100" });
     }
 
     if (behaviorScore < 0 || behaviorScore > 100) {
@@ -873,14 +885,14 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
             hrEvaluation = {
                 month,
                 memberId,
-                socialScore,
+                meetingScore,
                 behaviorScore,
                 interactionScore
             };
             Member.hr_rate.push(hrEvaluation);
         } else {
             // If it exists, update the scores
-            hrEvaluation.socialScore = socialScore;
+            hrEvaluation.meetingScore = meetingScore;
             hrEvaluation.behaviorScore = behaviorScore;
             hrEvaluation.interactionScore = interactionScore;
         }
@@ -891,16 +903,45 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
         // Get tasks for the given month
         const tasksForMonth = getTasksByMonth(Member, monthNumber, year);
 
-        // Update task rates based on the new HR evaluation
-        tasksForMonth.forEach(task => {
+        // Update task rates based on the new HR evaluation //__-__-__ it will be changed to change in avg_rate of that month
             // Calculate task rate using the formula
-            task.rate = (
-                (socialScore / 100 * 0.1 * task.points) +
-                (behaviorScore / 100 * 0.1 * task.points) +
-                (interactionScore / 100 * 0.1 * task.points) +
-                task.headEvaluation +
-                task.deadlineEvaluation
+        let tasksRate = 0;
+        tasksForMonth.forEach((task) => {
+            tasksRate += task.rate || 0;
+        });
+        // Ensure all values are numbers
+        const meetingScoreNum = Number(meetingScore);
+        const behaviorScoreNum = Number(behaviorScore);
+        const interactionScoreNum = Number(interactionScore);
+        const tasksRateNum = Number(tasksRate);
+        const tasksForMonthLengthNum = Number(tasksForMonth.length);
+        console.log("tasksForMonthLengthNum", tasksForMonthLengthNum)
+        console.log("meetingScoreNum", meetingScoreNum)
+        console.log("behaviorScoreNum", behaviorScoreNum)
+        console.log("interactionScoreNum", interactionScoreNum)
+
+        let avg_Rate_Value = 0;
+        if (
+            !isNaN(meetingScoreNum) &&
+            !isNaN(behaviorScoreNum) &&
+            !isNaN(interactionScoreNum) &&
+            !isNaN(tasksRateNum) &&
+            !isNaN(tasksForMonthLengthNum)
+        ) {
+            avg_Rate_Value = (
+                (meetingScoreNum * 0.1) +
+                (behaviorScoreNum * 0.1) +
+                (interactionScoreNum * 0.1) +
+                (tasksForMonthLengthNum > 0 ? (tasksRateNum / tasksForMonthLengthNum * 0.7) : 0)
             );
+        }
+        else{
+            res.status(400).json({ message: "بيانات غير صحيحة: تأكد من أن جميع القيم المدخلة أرقام صحيحة" });
+        }
+        console.log("avg_Rate_Value", avg_Rate_Value)
+        Member.avg_rate.push({
+            month: month,
+            value: avg_Rate_Value
         });
 
         // Save the updated member
@@ -1649,6 +1690,64 @@ const generateEvaluationWebPage = (data) => {
 
 const JWT= require('jsonwebtoken');
 
+const Add_warning_alert = asyncWrapper(async (req, res) => {
+    const { memberId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(memberId)) {
+        return res.status(400).json({ message: "Invalid member id" });
+    }
+    const Member = await member.findById(memberId);
+    const {admin} = await member.findOne({email : req.decoded});
+    const { date, type, header, body, link } = req.body;
+    if(!date){
+        return res.status(400).json({ message: "Date is required" });
+    }
+    if (!Member) {
+        return res.status(404).json({ message: "Member not found" });
+    }
+    if(!type){return res.status(400).json({ message: "Type is required" });}
+    if(!header){return res.status(400).json({ message: "Header is required" });}
+    if(admin.role =='leader' 
+        || admin.role =='viceLeader' 
+        || (admin.role =="head" && admin.committee == Member.committee) 
+        || (admin.role.includes(Member.committee)) 
+        || (admin.committee =='HR' && admin.role == "head")){
+    // Update the member's alerts
+            if(type == 'warning'){
+                Member.warnings.push({ date, header, body, link });
+            } else if(type == 'alert'){
+                Member.alerts.push({ date, header, body, link });
+            }
+            if(Member.alerts.length == 3)
+            {
+                await Member.remove();
+                res.status(200).json({ message: "Alert added successfully, member has been kicked" });
+            }
+    }
+
+    await Member.save();
+    res.status(200).json({ message: "Warning alert added successfully" });
+})
+const remove_warning_alert = asyncWrapper(async (req, res) => {
+    const { memberId, alertId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(memberId)) {
+        return res.status(400).json({ message: "Invalid member id" });
+    }
+    if(!mongoose.Types.ObjectId.isValid(alertId)) {
+        return res.status(400).json({ message: "Invalid alert id" });
+    }
+    const {type} = req.body;
+    const Member = await member.findById(memberId);
+    if (!Member) {
+        return res.status(404).json({ message: "Member not found" });
+    }
+    if(type == 'warning'){
+        Member.warnings.id(alertId).remove();
+    } else if(type == 'alert'){
+        Member.alerts.id(alertId).remove();
+    }
+    await Member.save();
+    res.status(200).json({ message: "Alert removed successfully" });
+})
 
 const generateFeedBack = asyncWrapper(async (req, res) => {
     const { memberId } = req.params;
@@ -1801,16 +1900,18 @@ module.exports = {
     generateOTP,
     verifyOTP,
     changePass,
-    rate,
+    rate, //  takes actions depending on avg_rate with warning and alerts
     changeProfileImage,
     addTask,
     editTask,
     deleteTask,
     submitMemberTask,
-    rateMemberTask,
-    updateTaskEvaluations,
+    rateMemberTask,// task rating -- 
+    updateTaskEvaluations, // Hr rating for month and avg_rate calc and update -- Done
     generateFeedBack,
-    sendEmailFeedBack
+    sendEmailFeedBack,
+    Add_warning_alert,
+    remove_warning_alert
 };
 
 
