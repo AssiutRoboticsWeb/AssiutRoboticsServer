@@ -124,7 +124,7 @@ Router.route("/verifyOTP").post(memberController.verifyOTP);
 
 Router.route("/changePassword").post(memberController.changePass);
 
-Router.route("/get/:com").get(memberController.getCommittee)
+Router.route("/get/:com").get(JWT.verify ,memberController.getCommittee)
 
 
 
@@ -235,9 +235,9 @@ Router.get("/sendFeedBack/:memberId/:token", memberController.generateFeedBack);
 
 Router.post("/sendFeedBackEmail/:memberId", memberController.sendEmailFeedBack);
 
-Router.post("/addWarningAlert/:memberId", memberController.Add_warning_alert);
+Router.post("/addWarningAlert/:memberId",JWT.verify, memberController.Add_warning_alert);
 
-Router.post("/removeWarningAlert/:memberId/:alert_warning_Id", memberController.remove_warning_alert);
+Router.post("/removeWarningAlert/:memberId/:penaltyId",JWT.verify, memberController.remove_warning_alert);
 
 
 

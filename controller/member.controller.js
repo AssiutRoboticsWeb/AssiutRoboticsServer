@@ -379,7 +379,14 @@ const changePass = asyncWrapper(async (req, res) => {
 
 const getCommittee = asyncWrapper(
     async (req, res, next) => {
+        const Member_email = req.decoded.email;
+        // if(emial)
+        const Member = await member.findOne({ email: Member_email });
         const com = req.params.com;
+        if(Member.role != "head" && Member.committee != com) {
+            const error = createError(403, httpStatusText.FAIL, "You are not authorized to access this committee")
+            throw (error)
+        }
         if (!com) {
             const error = createError(400, httpStatusText.FAIL, "name of committee  required")
             throw (error)
@@ -1696,9 +1703,9 @@ const Add_warning_alert = asyncWrapper(async (req, res) => {
         return res.status(400).json({ message: "Invalid member id" });
     }
     const Member = await member.findById(memberId);
-    const {admin} = await member.findOne({email : req.decoded});
-    const { date, type, header, body, link } = req.body;
-    if(!date){
+    const admin = await member.findOne({email : req.decoded.email});
+    const { addDate, type, header, body, link } = req.body;
+    if(!addDate){
         return res.status(400).json({ message: "Date is required" });
     }
     if (!Member) {
@@ -1713,11 +1720,11 @@ const Add_warning_alert = asyncWrapper(async (req, res) => {
         || (admin.committee =='HR' && admin.role == "head")){
     // Update the member's alerts
             if(type == 'warning'){
-                Member.warnings.push({ date, header, body, link });
+                Member.warnings.push({ addDate, header, body, link });
             } else if(type == 'alert'){
-                Member.alerts.push({ date, header, body, link });
+                Member.alerts.push({ addDate, header, body, link });
             }
-            if(Member.alerts.length == 3)
+            if(Member.alerts.length + Member.warnings.length / 3  == 3)
             {
                 await Member.remove();
                 res.status(200).json({ message: "Alert added successfully, member has been kicked" });
@@ -1728,25 +1735,36 @@ const Add_warning_alert = asyncWrapper(async (req, res) => {
     res.status(200).json({ message: "Warning alert added successfully" });
 })
 const remove_warning_alert = asyncWrapper(async (req, res) => {
-    const { memberId, alertId } = req.params;
+    const { memberId, penaltyId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(memberId)) {
-        return res.status(400).json({ message: "Invalid member id" });
+        return res.status(400).json({ status: "400", message: "Invalid member id" });
     }
-    if(!mongoose.Types.ObjectId.isValid(alertId)) {
-        return res.status(400).json({ message: "Invalid alert id" });
+    console.log(penaltyId);
+    if(!mongoose.Types.ObjectId.isValid(penaltyId)) {
+        return res.status(400).json({ status: "400", message: "Invalid Penalty id" });
     }
     const {type} = req.body;
     const Member = await member.findById(memberId);
     if (!Member) {
-        return res.status(404).json({ message: "Member not found" });
+        return res.status(404).json({ status: "400", message: "Member not found" });
     }
     if(type == 'warning'){
-        Member.warnings.id(alertId).remove();
+        const warning = Member.warnings.id(penaltyId);
+        if (!warning) {
+            return res.status(404).json({status: "400", message: "Warning not found" });
+        }
+        console.log(warning);
+        Member.warnings = Member.warnings.filter(warning => warning._id.toString() !== penaltyId.toString());
     } else if(type == 'alert'){
-        Member.alerts.id(alertId).remove();
+        const alert = Member.alerts.id(penaltyId);
+        if (!alert) {
+            return res.status(404).json({status: "400", message: "Alert not found" });
+        }
+        console.log(alert);
+        Member.alerts = Member.alerts.filter(alert => alert._id.toString() !== penaltyId);
     }
     await Member.save();
-    res.status(200).json({ message: "Alert removed successfully" });
+    res.status(200).json({ message: "Penalty removed successfully" });
 })
 
 const generateFeedBack = asyncWrapper(async (req, res) => {
