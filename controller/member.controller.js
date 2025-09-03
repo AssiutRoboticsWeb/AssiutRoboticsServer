@@ -113,6 +113,17 @@ const register = asyncWrapper(async (req, res, next) => {
         committee,
         gender,
         phoneNumber,
+        avg_rate: [],
+        alerts: [],
+        warnings: [],
+        verified: false,
+        secretKey: "",
+        startedTracks: [],
+        tasks: [],
+        hr_rate: [],
+        visits: [],
+        feedBacks: [],
+        avatar: "../all-images/default.png"
     })
     await newMember.save();
     const generateToken = jwt.generateToken()
