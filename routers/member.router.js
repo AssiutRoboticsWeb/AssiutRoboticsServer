@@ -110,7 +110,7 @@ Router.route("/verifyEmail/:token").get(
 );
 
 Router.route("/getAllMembers").get(memberController.getAllMembers);
-
+ 
 Router.route("/login").post(memberController.login);
 
 Router.route("/verify").get(JWT.verify, memberController.verify);
