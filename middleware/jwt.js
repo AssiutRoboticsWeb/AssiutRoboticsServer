@@ -31,10 +31,10 @@ const verify =
                 // res.status(401).send({ message: "token is required" });
             } else {
                 const token = req.params.token || authHeader.split(" ")[1].trim();
-                console.log("token:", token);
+                // console.log("token:", token);
                 const decoded = await jwt.verify(token, process.env.SECRET);
                 if (decoded) {
-                    console.log("decoded is : ", decoded);
+                    // console.log("decoded is : ", decoded);
                     req.decoded = decoded;
                     next();
                 } else {

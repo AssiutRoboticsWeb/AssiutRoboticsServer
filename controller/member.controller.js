@@ -52,12 +52,12 @@ const filePath = path.join(__dirname, '../public/verifyEmail.html');
 // deleteVisits();
 
 
-const test =()=>{
+const test = () => {
     console.log("test");
-    let now=Date.now()
+    let now = Date.now()
 
-    now=new Date(now)
-    let end=new Date("2025-03-27")
+    now = new Date(now)
+    let end = new Date("2025-03-27")
     console.log(now);
     console.log(end);
     console.log(now > end);
@@ -164,10 +164,10 @@ const login = asyncWrapper(async (req, res) => {
 
 
     console.log("body", req.body);
-    const { email, password, remember,ip } = req.body;
+    const { email, password, remember, ip } = req.body;
     const oldMember = await member.findOne({ email })
- 
-   
+
+
     // console.log(oldMember);
 
     if (!oldMember) {
@@ -200,12 +200,12 @@ const login = asyncWrapper(async (req, res) => {
 
     // check if the ip is already in the visits array
     const visit = await Visits.findOne({ ip }, { _id: 1 });
-    if(!visit){
+    if (!visit) {
         const newVisit = new Visits({ ip });
         await newVisit.save();
         oldMember.visits.push(newVisit._id);
-    }else{
-        if(!oldMember.visits.includes(visit._id)){
+    } else {
+        if (!oldMember.visits.includes(visit._id)) {
             oldMember.visits.push(visit._id);
         }
     }
@@ -239,8 +239,8 @@ const verify = asyncWrapper(async (req, res) => {
     try {
         if (req.decoded) {
             const oldMember = await member.findOne({ email: req.decoded.email }, { password: false })
-        
-             
+
+
             if (oldMember) {
                 res.status(200).send({ message: "success authorization", data: oldMember });
             } else {
@@ -394,7 +394,7 @@ const getCommittee = asyncWrapper(
         // if(emial)
         const Member = await member.findOne({ email: Member_email });
         const com = req.params.com;
-        if(Member.role != "head" && Member.committee != com) {
+        if (Member.role != "head" && Member.committee != com) {
             const error = createError(403, httpStatusText.FAIL, "You are not authorized to access this committee")
             throw (error)
         }
@@ -414,7 +414,7 @@ const controlHR = async (req, res) => {
     try {
         const { id, committee } = req.body;
 
-        await member.findByIdAndUpdate(id, { role: "HR " + committee});
+        await member.findByIdAndUpdate(id, { role: "HR " + committee });
         res.status(200).json({
             status: httpStatusText.SUCCESS,
             data: null,
@@ -467,7 +467,7 @@ const changeHead = asyncWrapper(async (req, res) => {
 
 });
 
-const changeVice = asyncWrapper(async(req,res) =>{
+const changeVice = asyncWrapper(async (req, res) => {
     const id = req.body.memberId;
     const email = req.decoded.email;
     const Member = await member.findOne({ email });
@@ -478,8 +478,8 @@ const changeVice = asyncWrapper(async(req,res) =>{
     const newVice = await member.findOne({ _id: id });
     const committee = newVice.committee
     const oldVice = await member.findOne({ committee, role: "Vice" }) || 0;
-    
-    if(Member.committee != newVice.committee){
+
+    if (Member.committee != newVice.committee) {
         const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
         throw error
     }
@@ -487,14 +487,14 @@ const changeVice = asyncWrapper(async(req,res) =>{
         if (oldVice.role == 'head') {
             const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
             throw error
-           }
+        }
         if (oldVice.email == newVice.email) {
             return res.status(200).json({ message: "the same vice" })
         }
         oldVice.role = "member";
         await oldVice.save()
     }
-    if(!oldVice) {
+    if (!oldVice) {
         newVice.role = "vice";
         await newVice.save();
         return res.status(200).json({
@@ -579,7 +579,7 @@ const changeProfileImage = asyncWrapper(async (req, res) => {
         throw (error)
 
     }
-console.log("imageUrl",req.imageUrl)
+    console.log("imageUrl", req.imageUrl)
 
     if (!req.imageUrl) {
         const error = createError(404, httpStatusText.SUCCESS, "image Url not found ")
@@ -640,13 +640,14 @@ const addTask = asyncWrapper(
         // let end =new Date(deadline)
         // end.setHours(23,59,59,999);       
 
-        Member.tasks.push( {
+        Member.tasks.push({
             deadline,
             description,
             points,
             startDate,
             taskUrl,
-            title, });
+            title,
+        });
         Member.save()
         res.status(200).json({ status: httpStatusText.SUCCESS, message: "add task successfully" })
     }
@@ -664,9 +665,9 @@ const editTask = asyncWrapper(
             startDate,
             taskUrl,
             title, } = req.body;
-            
+
         // console.log("body : ",req.body);
-            
+
         const Member = await member.findById(memberId);
         const email = req.decoded.email;
         const admin = await member.findOne({ email })
@@ -683,23 +684,23 @@ const editTask = asyncWrapper(
         const task = Member.tasks.id(taskId);
 
 
-            
+
         if (!task) {
             const error = createError(404, "Member or Task not found");
             throw error;
         }
 
-        task.headEvaluation=   task.headEvaluation/(task.points*0.5) *points*0.5;
-        task.deadlineEvaluation=  task.deadlineEvaluation/(task.points*0.2)    *points*0.2;
-        task.rate=task.headEvaluation+task.deadlineEvaluation+0.3*points;
-        task.title=title;
-        task.description=description;
-        task.startDate=startDate;
-        task.deadline=deadline;
-        task.points=points;
-        task.taskUrl=taskUrl;
+        task.headEvaluation = task.headEvaluation / (task.points * 0.5) * points * 0.5;
+        task.deadlineEvaluation = task.deadlineEvaluation / (task.points * 0.2) * points * 0.2;
+        task.rate = task.headEvaluation + task.deadlineEvaluation + 0.3 * points;
+        task.title = title;
+        task.description = description;
+        task.startDate = startDate;
+        task.deadline = deadline;
+        task.points = points;
+        task.taskUrl = taskUrl;
 
-        
+
         await Member.save();
 
         // console.log(Member)
@@ -756,60 +757,60 @@ const deleteTask = asyncWrapper(
 
 const rateMemberTask = asyncWrapper(
     async (req, res) => {
- 
+
         const { headEvaluation } = req.body;
-            const { taskId, memberId } = req.params;
-            const email = req.decoded.email;
-            const admin = await member.findOne({ email })
-            const Member = await member.findOne({ _id: memberId, "tasks._id": taskId });
-            if (admin.role != 'leader' &&
-                admin.role != 'viceLeader' &&
-                (admin.role != 'head' || admin.committee != Member.committee) &&
-                (admin.role != 'vice' || admin.committee != Member.committee) &&
-                admin.role != `HR ${Member.committee}`
-            ) {
-                const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
-                throw error;
-            }
+        const { taskId, memberId } = req.params;
+        const email = req.decoded.email;
+        const admin = await member.findOne({ email })
+        const Member = await member.findOne({ _id: memberId, "tasks._id": taskId });
+        if (admin.role != 'leader' &&
+            admin.role != 'viceLeader' &&
+            (admin.role != 'head' || admin.committee != Member.committee) &&
+            (admin.role != 'vice' || admin.committee != Member.committee) &&
+            admin.role != `HR ${Member.committee}`
+        ) {
+            const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
+            throw error;
+        }
 
-            if (!Member) {
-                const error=createError(400,httpStatusText.FAIL,"member not found ")
-                throw error;
-                return res.status(404).json({ success: false, message: "المهمة أو العضو غير موجود" });
-            }
+        if (!Member) {
+            const error = createError(400, httpStatusText.FAIL, "member not found ")
+            throw error;
+            return res.status(404).json({ success: false, message: "المهمة أو العضو غير موجود" });
+        }
 
-            const task = Member.tasks.id(taskId);
+        const task = Member.tasks.id(taskId);
 
-            if (!task || typeof task.points !== "number" || task.points <= 0) {
-                const error=createError(400,httpStatusText.FAIL,"pints not a number ")
-                throw error;
-                // return res.status(400).json({ success: false, message: "عدد النقاط غير صالح" });
-            }
+        if (!task || typeof task.points !== "number" || task.points <= 0) {
+            const error = createError(400, httpStatusText.FAIL, "pints not a number ")
+            throw error;
+            // return res.status(400).json({ success: false, message: "عدد النقاط غير صالح" });
+        }
 
 
-                // task rating 
-                task.headEvaluation = task.headPercent * task.points * headEvaluation / 10000;
-                
-                // deadline calculated when USER submitted TASK 
-                task.rate=task.headEvaluation+task.deadlineEvaluation+0.4*task.points; // headEva + DeadlineEva + submissionEva
-                // end of task rating
-            await Member.save();
+        // task rating 
+        task.headEvaluation = task.headPercent * task.points * headEvaluation / 10000;
 
-            res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
+        // deadline calculated when USER submitted TASK 
+        task.rate = task.headEvaluation + task.deadlineEvaluation + 0.4 * task.points; // headEva + DeadlineEva + submissionEva
+        // end of task rating
+        await Member.save();
+
+        res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
 
     }
 )
 
 
-  
+
 
 const submitMemberTask = async (req, res) => {
     try {
         const { taskId } = req.params;
         const { submissionUrl } = req.body;
         const email = req.decoded.email;
-        const fileId=req.fileId
-        const downloadUrl=req.fileUrl;
+        const fileId = req.fileId
+        const downloadUrl = req.fileUrl;
 
         console.log(fileId)
         console.log(downloadUrl)
@@ -832,8 +833,8 @@ const submitMemberTask = async (req, res) => {
 
         // Update the submission link
         task.submissionLink = submissionUrl;
-        task.submissionFileId=fileId;
-        task.downloadSubmissionUrl=downloadUrl;
+        task.submissionFileId = fileId;
+        task.downloadSubmissionUrl = downloadUrl;
         task.submissionDate = Date.now();
 
         // calc deadline 
@@ -922,7 +923,7 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
         const tasksForMonth = getTasksByMonth(Member, monthNumber, year);
 
         // Update task rates based on the new HR evaluation //__-__-__ it will be changed to change in avg_rate of that month
-            // Calculate task rate using the formula
+        // Calculate task rate using the formula
         let tasksRate = 0;
         tasksForMonth.forEach((task) => {
             tasksRate += task.rate || 0;
@@ -953,7 +954,7 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
                 (tasksForMonthLengthNum > 0 ? (tasksRateNum / tasksForMonthLengthNum * 0.7) : 0)
             );
         }
-        else{
+        else {
             res.status(400).json({ message: "بيانات غير صحيحة: تأكد من أن جميع القيم المدخلة أرقام صحيحة" });
         }
         console.log("avg_Rate_Value", avg_Rate_Value)
@@ -1706,7 +1707,7 @@ const generateEvaluationWebPage = (data) => {
 
 //   console.log(generateEvaluationEmail(evaluationData));
 
-const JWT= require('jsonwebtoken');
+const JWT = require('jsonwebtoken');
 
 const Add_warning_alert = asyncWrapper(async (req, res) => {
     const { memberId } = req.params;
@@ -1714,32 +1715,31 @@ const Add_warning_alert = asyncWrapper(async (req, res) => {
         return res.status(400).json({ message: "Invalid member id" });
     }
     const Member = await member.findById(memberId);
-    const admin = await member.findOne({email : req.decoded.email});
+    const admin = await member.findOne({ email: req.decoded.email });
     const { addDate, type, header, body, link } = req.body;
-    if(!addDate){
+    if (!addDate) {
         return res.status(400).json({ message: "Date is required" });
     }
     if (!Member) {
         return res.status(404).json({ message: "Member not found" });
     }
-    if(!type){return res.status(400).json({ message: "Type is required" });}
-    if(!header){return res.status(400).json({ message: "Header is required" });}
-    if(admin.role =='leader' 
-        || admin.role =='viceLeader' 
-        || (admin.role =="head" && admin.committee == Member.committee) 
-        || (admin.role.includes(Member.committee)) 
-        || (admin.committee =='HR' && admin.role == "head")){
-    // Update the member's alerts
-            if(type == 'warning'){
-                Member.warnings.push({ addDate, header, body, link });
-            } else if(type == 'alert'){
-                Member.alerts.push({ addDate, header, body, link });
-            }
-            if(Member.alerts.length + Member.warnings.length / 3  == 3)
-            {
-                await Member.remove();
-                res.status(200).json({ message: "Alert added successfully, member has been kicked" });
-            }
+    if (!type) { return res.status(400).json({ message: "Type is required" }); }
+    if (!header) { return res.status(400).json({ message: "Header is required" }); }
+    if (admin.role == 'leader'
+        || admin.role == 'viceLeader'
+        || (admin.role == "head" && admin.committee == Member.committee)
+        || (admin.role.includes(Member.committee))
+        || (admin.committee == 'HR' && admin.role == "head")) {
+        // Update the member's alerts
+        if (type == 'warning') {
+            Member.warnings.push({ addDate, header, body, link });
+        } else if (type == 'alert') {
+            Member.alerts.push({ addDate, header, body, link });
+        }
+        if (Member.alerts.length + Member.warnings.length / 3 == 3) {
+            await Member.remove();
+            res.status(200).json({ message: "Alert added successfully, member has been kicked" });
+        }
     }
 
     await Member.save();
@@ -1751,25 +1751,25 @@ const remove_warning_alert = asyncWrapper(async (req, res) => {
         return res.status(400).json({ status: "400", message: "Invalid member id" });
     }
     console.log(penaltyId);
-    if(!mongoose.Types.ObjectId.isValid(penaltyId)) {
+    if (!mongoose.Types.ObjectId.isValid(penaltyId)) {
         return res.status(400).json({ status: "400", message: "Invalid Penalty id" });
     }
-    const {type} = req.body;
+    const { type } = req.body;
     const Member = await member.findById(memberId);
     if (!Member) {
         return res.status(404).json({ status: "400", message: "Member not found" });
     }
-    if(type == 'warning'){
+    if (type == 'warning') {
         const warning = Member.warnings.id(penaltyId);
         if (!warning) {
-            return res.status(404).json({status: "400", message: "Warning not found" });
+            return res.status(404).json({ status: "400", message: "Warning not found" });
         }
         console.log(warning);
         Member.warnings = Member.warnings.filter(warning => warning._id.toString() !== penaltyId.toString());
-    } else if(type == 'alert'){
+    } else if (type == 'alert') {
         const alert = Member.alerts.id(penaltyId);
         if (!alert) {
-            return res.status(404).json({status: "400", message: "Alert not found" });
+            return res.status(404).json({ status: "400", message: "Alert not found" });
         }
         console.log(alert);
         Member.alerts = Member.alerts.filter(alert => alert._id.toString() !== penaltyId);
@@ -1786,16 +1786,16 @@ const generateFeedBack = asyncWrapper(async (req, res) => {
         return res.status(404).json({ message: "Member not found" });
     }
 
-    const data= await JWT.verify(req.params.token, process.env.SECRET);
+    const data = await JWT.verify(req.params.token, process.env.SECRET);
     console.log("data", data);
-    if(!data){
+    if (!data) {
         return res.status(400).json({ message: "Invalid data" });
     }
-    
+
 
 
     // Function to replace template values with actual data
-    
+
     // Your data object
     const evaluationData = {
         name: Member.name,
@@ -1808,13 +1808,13 @@ const generateFeedBack = asyncWrapper(async (req, res) => {
         total: data.total,
         awards: data.awards
     };
-    
+
     // Generate the populated template
-    if(Member.committee=='web'){
+    if (Member.committee == 'web') {
         const populatedTemplate = generateEvaluationWebPage(evaluationData);
         res.end(populatedTemplate);
     }
-    else{
+    else {
         const populatedTemplate = generateEvaluationEmail(evaluationData);
         res.end(populatedTemplate);
     }
@@ -1828,10 +1828,10 @@ const generateFeedBack = asyncWrapper(async (req, res) => {
     // });
 
     // res.status(200).json({ message: "Evaluation report sent successfully" });
-    
+
 })
-const notificationFeedback=async(memberId, token)=>{
-    return  `
+const notificationFeedback = async (memberId, token) => {
+    return `
         <html>
         <head>
             <meta charset="UTF-8">
@@ -1875,18 +1875,18 @@ const notificationFeedback=async(memberId, token)=>{
 
 
 
-const sendEmailFeedBack=asyncWrapper(async (req, res) => {
-    const memberId=req.params.memberId;
-    if(!memberId){
+const sendEmailFeedBack = asyncWrapper(async (req, res) => {
+    const memberId = req.params.memberId;
+    if (!memberId) {
         return res.status(400).json({ message: "Invalid member id" });
     }
-    const Member=await member.findById(memberId);
-    if(!Member){
+    const Member = await member.findById(memberId);
+    if (!Member) {
         return res.status(404).json({ message: "Member not found" });
     }
-    const data=req.body;
+    const data = req.body;
     console.log("data", data);
-    if(!data){
+    if (!data) {
         return res.status(400).json({ message: "Invalid data" });
     }
     const evaluationData = {
@@ -1901,8 +1901,8 @@ const sendEmailFeedBack=asyncWrapper(async (req, res) => {
         awards: data.awards
     };
 
-        const generateToken = jwt.generateToken()
-        const token = await generateToken( evaluationData);
+    const generateToken = jwt.generateToken()
+    const token = await generateToken(evaluationData);
     await sendEmail({
         email: Member.email,
         subject: 'Feedback',
@@ -1912,7 +1912,7 @@ const sendEmailFeedBack=asyncWrapper(async (req, res) => {
 
     res.status(200).json({ message: "Feedback sent successfully" });
 
-}   )
+})
 
 
 module.exports = {

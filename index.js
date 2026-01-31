@@ -28,7 +28,22 @@ const httpStatusText = require('./utils/httpStatusText');
 
 // Middleware
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
 app.use(cors());
+app.use(helmet());
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+    standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    // store: ... , // Redis, Memcached, etc. See Below.
+})
+
+// Apply the rate limiting middleware to all requests.
+app.use(limiter);
 
 const body_parser = require('body-parser');
 app.use(body_parser.json());
@@ -43,7 +58,7 @@ app.use("/members", memberRouter);
 app.use("/blogs", blogRouter);
 app.use("/components", componentRouter);
 app.use("/lap-dates", lapDateRouter);
-app.use("/visits", visitRouter);     
+app.use("/visits", visitRouter);
 app.use("/announcements", announcementRouter);
 app.use("/meetings", meetingRouter);
 app.use("/guests", guestRouter);
@@ -67,7 +82,7 @@ app.post("/test", (req, res) => {
     res.send("POST route works ✅");
 });
 
-app.use("/",(req, res, next) => {
+app.use("/", (req, res, next) => {
     res.status(404).json({
         success: false,
         message: "Not Found api route"
