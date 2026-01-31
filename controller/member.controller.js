@@ -756,9 +756,9 @@ const deleteTask = asyncWrapper(
 
 const rateMemberTask = asyncWrapper(
     async (req, res) => {
-
+ 
         const { headEvaluation } = req.body;
-        const { taskId, memberId } = req.params;
+            const { taskId, memberId } = req.params;
             const email = req.decoded.email;
             const admin = await member.findOne({ email })
             const Member = await member.findOne({ _id: memberId, "tasks._id": taskId });
@@ -835,7 +835,7 @@ const submitMemberTask = async (req, res) => {
         task.submissionFileId=fileId;
         task.downloadSubmissionUrl=downloadUrl;
         task.submissionDate = Date.now();
-        
+
         // calc deadline 
         const deadlineDate = new Date(task.deadline);
         const submissionDate = new Date(task.submissionDate);

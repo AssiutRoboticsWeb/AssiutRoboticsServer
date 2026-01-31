@@ -160,24 +160,11 @@ const memberSchema = new mongoose.Schema({
     }
   ],  
   alerts: {
-    type: [
-      {
-        addDate: { type: String, required: true },
-        header: { type: String, required: true },
-        body: { type: String },
-        link: { type: String, default: "#" }
-      }
-    ],
+    type: mongoose.Schema.Types.Mixed,
     default: []
   },
   warnings: {
-    type: [
-      {
-        header: { type: String, required: true },
-        body: { type: String },
-        link: { type: String, default: "#" }
-      }
-    ],
+    type: mongoose.Schema.Types.Mixed,
     default: []
   },
   verified: {
@@ -224,10 +211,20 @@ const createError = require("../utils/createError");
 const { required } = require('nodemon/lib/config');
 
 memberSchema.pre('save', async function (next) {
-  if (Date.now() > new Date("2025-09-27")) {
+  // Only check registration deadline for new documents (not updates)
+  if (this.isNew && Date.now() > new Date("2025-09-27")) {
     const error = createError(400, 'FAIL', "Registration is closed");
     return next(error); 
   }
+  
+  // Convert old numeric alerts/warnings to arrays for backward compatibility
+  if (typeof this.alerts === 'number') {
+    this.alerts = [];
+  }
+  if (typeof this.warnings === 'number') {
+    this.warnings = [];
+  }
+  
   next();
 });
 
