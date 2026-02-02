@@ -37,3 +37,4 @@ build/
 .specstory
 AUDIT_REPORT.md
 _archive
+api_endpoints.json
