@@ -57,9 +57,27 @@ const httpStatusText = require('./utils/httpStatusText');
 // Security Middleware
 // ============================================
 // CORS Configuration
+const defaultProductionOrigins = [
+    'https://assiut-robotics-website-xi.vercel.app',
+    'https://assiutrobotics.vercel.app',
+    'https://assiut-robotics-website-zeta.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5000',
+];
+
+const normalizeOrigin = (value) => {
+    if (!value) return '';
+    return value.trim().replace(/\/+$/, '');
+};
+
+const envAllowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
 const allowedOrigins = isDevelopment
     ? null // null means allow all in callback
-    : (process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || []);
+    : [...new Set([...defaultProductionOrigins, ...envAllowedOrigins].map(normalizeOrigin))];
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -68,7 +86,7 @@ const corsOptions = {
         // In development, allow all origins
         if (isDevelopment) return callback(null, true);
         // In production, check against allowed list
-        if (allowedOrigins.includes(origin)) {
+        if (allowedOrigins.includes(normalizeOrigin(origin))) {
             return callback(null, true);
         }
         return callback(new Error(`CORS: Origin ${origin} not allowed`));
