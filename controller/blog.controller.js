@@ -1,7 +1,3 @@
-require("dotenv").config();
-const MONGOURL = process.env.MONGOURL;
-const mongoose = require("mongoose");
-mongoose.connect(MONGOURL);
 const blog = require("../mongoose.models/blog");
 
 const addBlog = async (req, res) => {

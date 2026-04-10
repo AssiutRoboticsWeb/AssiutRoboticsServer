@@ -1,7 +1,3 @@
-require("dotenv").config();
-const MONGOURL = process.env.MONGOURL;
-const mongoose = require("mongoose");
-mongoose.connect(MONGOURL);
 const member = require("../mongoose.models/member");
 const Visits = require("../mongoose.models/visits");
 

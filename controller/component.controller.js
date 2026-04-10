@@ -1,7 +1,3 @@
-require("dotenv").config();
-const MONGOURL = process.env.MONGOURL;
-const mongoose = require("mongoose");
-mongoose.connect(MONGOURL);
 const component = require("../mongoose.models/component");
 const path = require('path');
 const fs = require('fs');

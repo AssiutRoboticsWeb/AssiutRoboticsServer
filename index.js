@@ -27,8 +27,10 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 
 const app = express();
+app.set('trust proxy', isProduction ? 1 : false);
 
 // ============================================
 // Routers
@@ -131,6 +133,22 @@ const limiter = rateLimit({
     }
 });
 app.use(limiter);
+
+// ============================================
+// Database
+// ============================================
+const connectDatabase = async () => {
+    try {
+        await mongoose.connect(process.env.MONGOURL, {
+            serverSelectionTimeoutMS: 10000,
+            maxPoolSize: 10
+        });
+        console.log('✅ MongoDB connected');
+    } catch (error) {
+        console.error('❌ MongoDB connection failed:', error.message);
+        // Keep the server alive; requests that need DB will return controlled errors.
+    }
+};
 
 // ============================================
 // General Middleware
@@ -257,7 +275,9 @@ app.use((req, res, next) => {
 // Global Error Handler
 // ============================================
 app.use((err, req, res, next) => {
-    const statusCode = err.statusCode || 500;
+    const isMongoConnectivityError = err?.name === 'MongooseServerSelectionError'
+        || /buffering timed out/i.test(err?.message || '');
+    const statusCode = err.statusCode || (isMongoConnectivityError ? 503 : 500);
     const statusText = err.statusText || httpStatusText.ERROR;
 
     // Log error details
@@ -272,7 +292,9 @@ app.use((err, req, res, next) => {
     res.status(statusCode).json({
         success: false,
         statusText,
-        message: statusCode === 500 ? "Internal Server Error" : err.message,
+        message: statusCode === 500
+            ? "Internal Server Error"
+            : (isMongoConnectivityError ? "Database is temporarily unavailable" : err.message),
         ...(isDevelopment && {
             error: err.message,
             stack: err.stack,
@@ -311,22 +333,32 @@ if (isDevelopment && process.env.GENERATE_API_ENDPOINTS === "true") {
 // ============================================
 // Server Startup
 // ============================================
-const server = app.listen(PORT, () => {
-    console.log('='.repeat(50));
-    console.log(`🚀 Assiut Robotics Server`);
-    console.log('='.repeat(50));
-    console.log(`📍 Environment: ${NODE_ENV}`);
-    console.log(`🌐 Server: http://localhost:${PORT}`);
-    console.log(`💚 Health Check: http://localhost:${PORT}/health`);
-    console.log(`⏰ Started: ${new Date().toLocaleString()}`);
-    console.log('='.repeat(50));
-});
+let server;
+const startServer = async () => {
+    await connectDatabase();
+    server = app.listen(PORT, () => {
+        console.log('='.repeat(50));
+        console.log(`🚀 Assiut Robotics Server`);
+        console.log('='.repeat(50));
+        console.log(`📍 Environment: ${NODE_ENV}`);
+        console.log(`🌐 Server: http://localhost:${PORT}`);
+        console.log(`💚 Health Check: http://localhost:${PORT}/health`);
+        console.log(`⏰ Started: ${new Date().toLocaleString()}`);
+        console.log('='.repeat(50));
+    });
+};
+startServer();
 
 // ============================================
 // Graceful Shutdown
 // ============================================
 const gracefulShutdown = (signal) => {
     console.log(`\n⚠️  ${signal} received. Starting graceful shutdown...`);
+
+    if (!server) {
+        console.log('✅ No active HTTP server instance');
+        process.exit(0);
+    }
 
     server.close(() => {
         console.log('✅ HTTP server closed');
@@ -353,7 +385,7 @@ process.on('uncaughtException', (err) => {
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
     console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
-    gracefulShutdown('UNHANDLED_REJECTION');
+    // Do not terminate process on transient DB/network failures in serverless/runtime environments.
 });
 
 module.exports = app;
