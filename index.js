@@ -57,14 +57,32 @@ const httpStatusText = require('./utils/httpStatusText');
 // Security Middleware
 // ============================================
 // CORS Configuration
+const allowedOrigins = isDevelopment
+    ? null // null means allow all in callback
+    : (process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || []);
+
 const corsOptions = {
-    origin: isDevelopment
-        ? '*'
-        : process.env.ALLOWED_ORIGINS?.split(',') || '*',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, curl, server-to-server)
+        if (!origin) return callback(null, true);
+        // In development, allow all origins
+        if (isDevelopment) return callback(null, true);
+        // In production, check against allowed list
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS: Origin ${origin} not allowed`));
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-CSRF-Token'],
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+
+// Handle preflight OPTIONS requests explicitly (critical for Vercel serverless)
+app.options('*', cors(corsOptions));
+
 
 // Helmet for security headers
 app.use(helmet({
