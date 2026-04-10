@@ -23,7 +23,6 @@ const isProduction = NODE_ENV === 'production';
 // Dependencies
 // ============================================
 const express = require("express");
-const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
@@ -79,27 +78,39 @@ const allowedOrigins = isDevelopment
     ? null // null means allow all in callback
     : [...new Set([...defaultProductionOrigins, ...envAllowedOrigins].map(normalizeOrigin))];
 
-const corsOptions = {
-    origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, curl, server-to-server)
-        if (!origin) return callback(null, true);
-        // In development, allow all origins
-        if (isDevelopment) return callback(null, true);
-        // In production, check against allowed list
-        if (allowedOrigins.includes(normalizeOrigin(origin))) {
-            return callback(null, true);
-        }
-        return callback(new Error(`CORS: Origin ${origin} not allowed`));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-CSRF-Token'],
-    optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+const corsMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
+const corsHeaders = ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-CSRF-Token'];
 
-// Handle preflight OPTIONS requests explicitly (critical for Vercel serverless)
-app.options('*', cors(corsOptions));
+// Explicit CORS handling to guarantee preflight success on serverless platforms.
+app.use((req, res, next) => {
+    const requestOrigin = req.headers.origin;
+    const normalizedRequestOrigin = normalizeOrigin(requestOrigin);
+
+    const isAllowedOrigin = isDevelopment
+        ? true
+        : (!requestOrigin || allowedOrigins.includes(normalizedRequestOrigin));
+
+    if (requestOrigin && isAllowedOrigin) {
+        res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+        res.setHeader('Vary', 'Origin');
+    }
+
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', corsMethods.join(','));
+    res.setHeader('Access-Control-Allow-Headers', corsHeaders.join(','));
+
+    if (req.method === 'OPTIONS') {
+        if (!isAllowedOrigin) {
+            return res.status(403).json({
+                success: false,
+                message: `CORS: Origin ${requestOrigin} not allowed`
+            });
+        }
+        return res.sendStatus(204);
+    }
+
+    return next();
+});
 
 
 // Helmet for security headers
