@@ -29,7 +29,9 @@
   },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "node seeders/memberSeeder.js",
+    "seed:fresh": "node seeders/memberSeeder.js --fresh"
   },
   "devDependencies": {
     "gh-pages": "^6.1.1"
