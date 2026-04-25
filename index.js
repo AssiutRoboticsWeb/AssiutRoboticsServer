@@ -134,6 +134,12 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Middleware to log all incoming requests
+app.use((req, res, next) => {
+    console.log(`[Request] Method: ${req.method}, URL: ${req.originalUrl}, IP: ${req.ip}`);
+    next();
+});
+
 // ============================================
 // Database
 // ============================================
@@ -206,6 +212,7 @@ app.use("/api/lap-dates", lapDateRouter);
 app.use("/api/visits", visitRouter);
 app.use("/api/announcements", announcementRouter);
 app.use("/api/meetings", meetingRouter);
+app.use("/api/meeting", meetingRouter);
 app.use("/api/guests", guestRouter);
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/tracks", trackRouter);
@@ -221,6 +228,7 @@ app.use("/lap-dates", lapDateRouter);
 app.use("/visits", visitRouter);
 app.use("/announcements", announcementRouter);
 app.use("/meetings", meetingRouter);
+app.use("/meeting", meetingRouter);
 app.use("/guests", guestRouter);
 app.use("/webhooks", webhookRoutes);
 app.use("/tracks", trackRouter);
@@ -250,12 +258,15 @@ if (isDevelopment) {
     app.post("/test", (req, res) => {
         res.json({
             success: true,
-            message: "POST route works ✅",
+            message: "POST route works",
             body: req.body,
             timestamp: req.timestamp
         });
     });
 }
+
+// Handle favicon.ico to prevent 404 logs
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // ============================================
 // 404 Handler
