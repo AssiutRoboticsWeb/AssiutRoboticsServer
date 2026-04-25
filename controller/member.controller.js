@@ -22,6 +22,9 @@ const strongPassword = require("../utils/strongPass");
 const createError = require("../utils/createError")
 
 const authRole = require('../middleware/authorizeRoles')
+const { REGISTRATION_DEADLINE, MEMBER_ROLES, DEFAULT_AVATAR, COMMITTEES, JWT_EXPIRY } = require('../utils/constants');
+
+
 
 
 const { decode } = require("jsonwebtoken");
@@ -64,7 +67,7 @@ const htmlContent_ofVrify = fs.readFileSync(filePath, "utf-8");
 const register = asyncWrapper(async (req, res, next) => {
 
 
-    if(Date.now() > new Date("2026-09-27")){
+    if (Date.now() > new Date(REGISTRATION_DEADLINE)) {
         console.log("line 73 ")
         const error = createError(400, httpStatusText.FAIL, "Registration is closed")
         throw (error);
@@ -80,7 +83,7 @@ const register = asyncWrapper(async (req, res, next) => {
     if (oldEmail) {
 
         const generateToken = jwt.generateToken()
-        const token = await generateToken({ email }, "48h");
+        const token = await generateToken({ email }, JWT_EXPIRY.LONG);
         // https://assiut-robotics-server.vercel.app/
         const token_url = `https://assiut-robotics-server.vercel.app/members/verifyEmail/${token}`
         console.log("req.body is : ", req.body);
@@ -119,11 +122,11 @@ const register = asyncWrapper(async (req, res, next) => {
         hr_rate: [],
         visits: [],
         feedBacks: [],
-        avatar: "../all-images/default.png"
+        avatar: DEFAULT_AVATAR
     })
     await newMember.save();
     const generateToken = jwt.generateToken()
-    const token = await generateToken({ email }, "1h");
+    const token = await generateToken({ email }, JWT_EXPIRY.DEFAULT);
     // https://assiut-robotics-zeta.vercel.app/
     const token_url = `https://assiut-robotics-zeta.vercel.app/members/verifyEmail/${token}`
     console.log("req.body is : ", req.body);
@@ -186,7 +189,7 @@ const login = asyncWrapper(async (req, res) => {
     }
 
 
-    if (oldMember.role == "not accepted") {
+    if (oldMember.role == MEMBER_ROLES.NOT_ACCEPTED) {
         const error = createError(401, "un authorized", "wait until your account be accepted")
         throw (error);
     }
@@ -251,14 +254,14 @@ const verify = asyncWrapper(async (req, res) => {
 const confirm = asyncWrapper(async (req, res) => {
     const headEmail = req.decoded.email;
     const head = await member.findOne({ email: headEmail });
-    if (head.role != 'head' && head.role != 'leader') {
+    if (head.role != MEMBER_ROLES.HEAD && head.role != MEMBER_ROLES.LEADER) {
         const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${head.name} `)
         throw error
     }
     const { email, accepted } = req.body;
     console.log(accepted);
     const x = await member.findOne({ email, committee: head.committee });
-    if (!x && head.role != 'leader') {
+    if (!x && head.role != MEMBER_ROLES.LEADER) {
         const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${head.name} `)
         throw error
     }
@@ -270,7 +273,7 @@ const confirm = asyncWrapper(async (req, res) => {
             message: "deleted",
         });
     }
-    const Member = await member.findOneAndUpdate({ email }, { role: "member" });
+    const Member = await member.findOneAndUpdate({ email }, { role: MEMBER_ROLES.MEMBER });
     if (!Member.verified) {
         const error = createError(400, httpStatusText.FAIL, "Email Not verified yet");
         throw (error)
@@ -390,7 +393,7 @@ const getCommittee = asyncWrapper(
         // if(emial)
         const Member = await member.findOne({ email: Member_email });
         const com = req.params.com;
-        if (Member.role != "head" && Member.committee != com) {
+        if (Member.role != MEMBER_ROLES.HEAD && Member.committee != com) {
             const error = createError(403, httpStatusText.FAIL, "You are not authorized to access this committee")
             throw (error)
         }
@@ -430,24 +433,24 @@ const changeHead = asyncWrapper(async (req, res) => {
     const id = req.body.memberId;
     const email = req.decoded.email;
     const Member = await member.findOne({ email });
-    if (Member.role != 'leader') {
+    if (Member.role != MEMBER_ROLES.LEADER) {
         const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
         throw error
     }
     // await member.findOneAndUpdate({ _id: old_id }, { role: 4 });
     const newHead = await member.findOne({ _id: id });
     const committee = newHead.committee
-    const oldHead = await member.findOne({ committee, role: "head" });
+    const oldHead = await member.findOne({ committee, role: MEMBER_ROLES.HEAD });
 
     if (oldHead) {
         if (oldHead.email == newHead.email) {
             return res.status(200).json({ message: "the same head" })
         }
-        oldHead.role = "member";
+        oldHead.role = MEMBER_ROLES.MEMBER;
         await oldHead.save()
     }
 
-    newHead.role = "head";
+    newHead.role = MEMBER_ROLES.HEAD;
     // const members=await member.find({committee},{role:"head"})
     // await members.save()
     // const newHead = await member.findOneAndUpdate({ _id: new_id }, { role: 2 });
@@ -467,31 +470,31 @@ const changeVice = asyncWrapper(async (req, res) => {
     const id = req.body.memberId;
     const email = req.decoded.email;
     const Member = await member.findOne({ email });
-    if (Member.role != 'head') {
+    if (Member.role != MEMBER_ROLES.HEAD) {
         const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
         throw error
     }
     const newVice = await member.findOne({ _id: id });
     const committee = newVice.committee
-    const oldVice = await member.findOne({ committee, role: "Vice" }) || 0;
+    const oldVice = await member.findOne({ committee, role: MEMBER_ROLES.VICE }) || 0;
 
     if (Member.committee != newVice.committee) {
         const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
         throw error
     }
     if (oldVice) {
-        if (oldVice.role == 'head') {
+        if (oldVice.role == MEMBER_ROLES.HEAD) {
             const error = createError(401, httpStatusText.FAIL, `Stay out of what’s not yours ya ${Member.name} `)
             throw error
         }
         if (oldVice.email == newVice.email) {
             return res.status(200).json({ message: "the same vice" })
         }
-        oldVice.role = "member";
+        oldVice.role = MEMBER_ROLES.MEMBER;
         await oldVice.save()
     }
     if (!oldVice) {
-        newVice.role = "vice";
+        newVice.role = MEMBER_ROLES.VICE;
         await newVice.save();
         return res.status(200).json({
             status: httpStatusText.SUCCESS,
@@ -499,7 +502,7 @@ const changeVice = asyncWrapper(async (req, res) => {
             message: "done",
         });
     }
-    newVice.role = "vice";
+    newVice.role = MEMBER_ROLES.VICE;
     await newVice.save();
 
     res.status(200).json({
@@ -516,7 +519,7 @@ const rate = async (req, res) => {
         console.log(user);
         const committee = user.committee.split("-")[0];
         console.log(committee);
-        if (committee == "HR") {
+        if (committee == COMMITTEES.HR) {
             const { ID, rate } = req.body;
             const MEMBER = await member.findById(ID);
             // if(MEMBER.committee=="web"){
@@ -621,10 +624,10 @@ const addTask = asyncWrapper(
 
         const email = req.decoded.email;
         const admin = await member.findOne({ email })
-        if (admin.role != 'leader' &&
-            admin.role != 'viceLeader' &&
-            (admin.role != 'head' || admin.committee != Member.committee) &&
-            (admin.role != 'vice' || admin.committee != Member.committee) &&
+        if (admin.role != MEMBER_ROLES.LEADER &&
+            admin.role != MEMBER_ROLES.VICE_LEADER &&
+            (admin.role != MEMBER_ROLES.HEAD || admin.committee != Member.committee) &&
+            (admin.role != MEMBER_ROLES.VICE || admin.committee != Member.committee) &&
             admin.role != `HR ${Member.committee}`
         ) {
             const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
@@ -667,10 +670,10 @@ const editTask = asyncWrapper(
         const Member = await member.findById(memberId);
         const email = req.decoded.email;
         const admin = await member.findOne({ email })
-        if (admin.role != 'leader' &&
-            admin.role != 'viceLeader' &&
-            (admin.role != 'head' || admin.committee != Member.committee) &&
-            (admin.role != 'vice' || admin.committee != Member.committee) &&
+        if (admin.role != MEMBER_ROLES.LEADER &&
+            admin.role != MEMBER_ROLES.VICE_LEADER &&
+            (admin.role != MEMBER_ROLES.HEAD || admin.committee != Member.committee) &&
+            (admin.role != MEMBER_ROLES.VICE || admin.committee != Member.committee) &&
             admin.role != `HR ${Member.committee}`
         ) {
             const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
@@ -715,10 +718,10 @@ const deleteTask = asyncWrapper(
         const Member = await member.findById(memberId);
         const email = req.decoded.email;
         const admin = await member.findOne({ email })
-        if (admin.role != 'leader' &&
-            admin.role != 'viceLeader' &&
-            (admin.role != 'head' || admin.committee != Member.committee) &&
-            (admin.role != 'vice' || admin.committee != Member.committee) &&
+        if (admin.role != MEMBER_ROLES.LEADER &&
+            admin.role != MEMBER_ROLES.VICE_LEADER &&
+            (admin.role != MEMBER_ROLES.HEAD || admin.committee != Member.committee) &&
+            (admin.role != MEMBER_ROLES.VICE || admin.committee != Member.committee) &&
             admin.role != `HR ${Member.committee}`
         ) {
             const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
@@ -759,10 +762,10 @@ const rateMemberTask = asyncWrapper(
         const email = req.decoded.email;
         const admin = await member.findOne({ email })
         const Member = await member.findOne({ _id: memberId, "tasks._id": taskId });
-        if (admin.role != 'leader' &&
-            admin.role != 'viceLeader' &&
-            (admin.role != 'head' || admin.committee != Member.committee) &&
-            (admin.role != 'vice' || admin.committee != Member.committee) &&
+        if (admin.role != MEMBER_ROLES.LEADER &&
+            admin.role != MEMBER_ROLES.VICE_LEADER &&
+            (admin.role != MEMBER_ROLES.HEAD || admin.committee != Member.committee) &&
+            (admin.role != MEMBER_ROLES.VICE || admin.committee != Member.committee) &&
             admin.role != `HR ${Member.committee}`
         ) {
             const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
@@ -1721,11 +1724,11 @@ const Add_warning_alert = asyncWrapper(async (req, res) => {
     }
     if (!type) { return res.status(400).json({ message: "Type is required" }); }
     if (!header) { return res.status(400).json({ message: "Header is required" }); }
-    if (admin.role == 'leader'
-        || admin.role == 'viceLeader'
-        || (admin.role == "head" && admin.committee == Member.committee)
+    if (admin.role == MEMBER_ROLES.LEADER
+        || admin.role == MEMBER_ROLES.VICE_LEADER
+        || (admin.role == MEMBER_ROLES.HEAD && admin.committee == Member.committee)
         || (admin.role.includes(Member.committee))
-        || (admin.committee == 'HR' && admin.role == "head")) {
+        || (admin.committee == COMMITTEES.HR && admin.role == MEMBER_ROLES.HEAD)) {
         // Update the member's alerts
         if (type == 'warning') {
             Member.warnings.push({ addDate, header, body, link });
@@ -1806,7 +1809,7 @@ const generateFeedBack = asyncWrapper(async (req, res) => {
     };
 
     // Generate the populated template
-    if (Member.committee == 'web') {
+    if (Member.committee == COMMITTEES.SOFTWARE) {
         const populatedTemplate = generateEvaluationWebPage(evaluationData);
         res.end(populatedTemplate);
     }

@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const { REGISTRATION_DEADLINE, MEMBER_ROLES, MESSAGE_STATUS, DEFAULT_AVATAR } = require('../utils/constants');
+
 
 
 
@@ -121,8 +123,8 @@ const memberSchema = new mongoose.Schema({
     ,
     status: {
       type: String,
-      enum: ["unread", "read", "archived"],
-      default: "unread"
+      enum: Object.values(MESSAGE_STATUS),
+      default: MESSAGE_STATUS.UNREAD
     },
     links: [{
       label: String,
@@ -145,13 +147,13 @@ const memberSchema = new mongoose.Schema({
   },
  role: {
   type: String,
-  enum: ["not accepted", "member", "head","Vice" ], // حطيت head بدل admin
-  default: "not accepted"
+  enum: Object.values(MEMBER_ROLES),
+  default: MEMBER_ROLES.NOT_ACCEPTED
 },
 
   avatar: {
     type: String,
-    default: "../all-images/default.png"
+    default: DEFAULT_AVATAR
   },
   avg_rate: [
     {
@@ -212,7 +214,7 @@ const { required } = require('nodemon/lib/config');
 
 memberSchema.pre('save', async function (next) {
   // Only check registration deadline for new documents (not updates)
-  if (this.isNew && Date.now() > new Date("2025-09-27")) {
+  if (this.isNew && Date.now() > new Date(REGISTRATION_DEADLINE)) {
     const error = createError(400, 'FAIL', "Registration is closed");
     return next(error); 
   }

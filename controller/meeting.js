@@ -1,6 +1,8 @@
 const Meeting = require("../mongoose.models/meeting");
 const Member = require("../mongoose.models/member");
 const asyncWrapper = require("../middleware/asyncWrapper");
+const { MEETING_CONFIG } = require("../utils/constants");
+
 
 
 const createMeeting = asyncWrapper(async (req, res) => {
@@ -14,9 +16,9 @@ const createMeeting = asyncWrapper(async (req, res) => {
         return res.status(404).json({ status: 404, message: "Member not found" });
     }
     let tableOfDates = [];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < MEETING_CONFIG.DAYS_COUNT; i++) {
         let day = [];
-        for (let j = 8; j < 24; j++) {
+        for (let j = MEETING_CONFIG.START_HOUR; j < MEETING_CONFIG.END_HOUR; j++) {
             day.push({
                 time: `${j}:00`,
                 isBooked: false,

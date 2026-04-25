@@ -7,9 +7,7 @@ const { uploadToCloud } = require("../utils/cloudinary");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const createError = require("../utils/createError");
 const Member = require("../mongoose.models/member");
-
-
-
+const { MEMBER_ROLES, COMMITTEES } = require("../utils/constants");
 
 const addComponent = async (req, res) => {
     try {
@@ -136,9 +134,9 @@ const sendNotification =       async (memberEmail, componentId) => {
         const member = await Member.findOne({email:memberEmail});
         const updateComponent = await component.findById(componentId);
         let sendTo=[];
-        const leader=await Member.find({role:'leader'},{email:1});
+        const leader=await Member.find({role:MEMBER_ROLES.LEADER},{email:1});
         leader.forEach(item => sendTo.push(item.email));
-    const OC=await Member.find({committee:'OC'},{email:1});
+    const OC=await Member.find({committee:COMMITTEES.OC},{email:1});
     OC.forEach(item => sendTo.push(item.email));
     console.log(sendTo);
     let notificationEmailHtml=fs.readFileSync(path.join(__dirname, '../public/notificationRequestToBorrow.html'), 'utf8');
