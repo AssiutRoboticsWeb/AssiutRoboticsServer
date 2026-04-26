@@ -1,0 +1,12 @@
+{
+  "header": {
+    "title": "Welcome to Assiut Robotics"
+  },
+  "blog": {
+    "readMore": "Read more"
+  },
+  "api": {
+    "success": "Request successful",
+    "example": "This is a translated API response"
+  }
+}

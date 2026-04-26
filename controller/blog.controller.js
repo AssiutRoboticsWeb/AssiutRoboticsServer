@@ -23,7 +23,7 @@ const getBlogs = async (req, res) => {
     try {
         const blogs = await blog.find({});
 
-        res.status(200).send({ message: "get daa sucessfully", data: blogs });
+        res.status(200).send({ message: "get data successfully", data: blogs });
     } catch (error) {
         res.status(404).send({ message: "not found" });
     }

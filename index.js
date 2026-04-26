@@ -1,3 +1,6 @@
+
+
+
 require('dotenv').config();
 
 // ============================================
@@ -28,6 +31,11 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const i18next = require('./middleware/i18n');
+const i18nextMiddleware = require('i18next-http-middleware');
+const fs = require("fs")
+const path = require('path');
 
 const app = express();
 app.set('trust proxy', isProduction ? 1 : false);
@@ -162,8 +170,14 @@ const connectDatabase = async () => {
 // Compression
 app.use(compression());
 
+// Serve locales for frontend
+app.use('/locales', express.static(path.join(__dirname, 'locales')));
+
 // Body Parsing
 const body_parser = require('body-parser');
+app.use(cookieParser());
+app.use(i18nextMiddleware.handle(i18next));
+
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
 
@@ -186,6 +200,21 @@ app.use((req, res, next) => {
     req.id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     req.timestamp = new Date().toISOString();
     next();
+});
+
+// ============================================
+// i18n Example Route
+// ============================================
+app.get('/api/i18n-example', (req, res) => {
+    res.json({
+        success: true,
+        message: req.t('api.example'),
+        lang: req.language,
+        translations: {
+            title: req.t('header.title'),
+            readMore: req.t('blog.readMore')
+        }
+    });
 });
 
 // ============================================
