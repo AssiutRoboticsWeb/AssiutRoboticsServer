@@ -2,15 +2,17 @@ const multer = require('multer');
 const path = require('path');
 const createError = require('../utils/createError');
 const fs = require('fs');
+const os = require('os');
 
-// Ensure uploads directory exists
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
+// Ensure uploads directory exists in a writable location (/tmp on Vercel)
+const uploadDir = path.join(os.tmpdir(), 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const diskStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
