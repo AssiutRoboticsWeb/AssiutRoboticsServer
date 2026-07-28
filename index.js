@@ -29,6 +29,8 @@ const express = require("express");
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
@@ -61,6 +63,7 @@ const historyRouter = require('./routes/history.router');
 const projectRouter = require('./routes/project.router');
 const eventRouter = require('./routes/event.router');
 const secretApplicantRouter = require('./routes/secretApplicant.router');
+const authRouter = require('./routes/auth.router');
 
 // ============================================
 // Utils
@@ -178,13 +181,17 @@ app.use(compression());
 // Serve locales for frontend
 app.use('/locales', express.static(path.join(__dirname, 'locales')));
 
-// Body Parsing
-const body_parser = require('body-parser');
+// Body Parsing with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use(i18nextMiddleware.handle(i18next));
 
-app.use(body_parser.json());
-app.use(body_parser.urlencoded({ extended: true }));
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
 
 // Request Logging
 if (isDevelopment) {
@@ -192,10 +199,6 @@ if (isDevelopment) {
 } else {
     app.use(morgan('combined'));
 }
-
-// Body Parsing with size limits
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // View Engine
 app.set('view engine', 'ejs');
@@ -239,6 +242,7 @@ app.get('/health', (req, res) => {
 // ============================================
 // API Routes
 // ============================================
+app.use("/api/auth", authRouter);
 app.use("/api/members", memberRouter);
 app.use("/api/blogs", blogRouter);
 app.use("/api/components", componentRouter);
@@ -324,34 +328,8 @@ app.use((req, res, next) => {
 // ============================================
 // Global Error Handler
 // ============================================
-app.use((err, req, res, next) => {
-    const isMongoConnectivityError = err?.name === 'MongooseServerSelectionError'
-        || /buffering timed out/i.test(err?.message || '');
-    const statusCode = err.statusCode || (isMongoConnectivityError ? 503 : 500);
-    const statusText = err.statusText || httpStatusText.ERROR;
-
-    // Log error details
-    console.error(`[${req.timestamp}] [Error ${statusCode}] [${req.method} ${req.originalUrl}]`);
-    console.error('Error:', err.message);
-
-    if (isDevelopment) {
-        console.error('Stack:', err.stack);
-    }
-
-    // Send error response
-    res.status(statusCode).json({
-        success: false,
-        statusText,
-        message: statusCode === 500
-            ? "Internal Server Error"
-            : (isMongoConnectivityError ? "Database is temporarily unavailable" : err.message),
-        ...(isDevelopment && {
-            error: err.message,
-            stack: err.stack,
-            requestId: req.id
-        })
-    });
-});
+const errorHandler = require('./middleware/errorHandler');
+app.use(errorHandler);
 
 // ============================================
 // API Endpoints Documentation Generator

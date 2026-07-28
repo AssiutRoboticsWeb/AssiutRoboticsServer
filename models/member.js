@@ -92,6 +92,9 @@ const memberSchema = new mongoose.Schema({
   secretKey: {
     type: String,
   },
+  refreshToken: {
+    type: String,
+  },
 
 
 
