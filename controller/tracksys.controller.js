@@ -16,7 +16,7 @@ const getAllTrackSystemData = asyncWrapper(async (req, res) => {
     const courses = await Course.find()
         .populate('tracks', 'name description committee');
 
-    const members = await Member.find({ role: { $ne: 'not accepted' } }, 
+    const members = await Member.find({ role: { $ne: 'not accepted' } },
         'name email committee role rate startedTracks tasks hr_rate')
         .populate('startedTracks.track', 'name description committee')
         .populate('startedTracks.courses.course', 'name description');
@@ -64,7 +64,7 @@ const getAllAwa2l = asyncWrapper(async (req, res) => {
     }));
 
     // Overall top performers across all tracks
-    const allMembers = await Member.find({ 
+    const allMembers = await Member.find({
         role: { $ne: 'not accepted' },
         rate: { $exists: true, $ne: null }
     }, 'name email committee role rate tasks')

@@ -1,12 +1,12 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
 const Visits = require('../models/visits');
 const Member = require('../models/member');
 
-const asyncWrapper = require("../middleware/asyncWrapper");
+const asyncWrapper = require('../middleware/asyncWrapper');
 
-const httpStatusText = require("../utils/httpStatusText");
+const httpStatusText = require('../utils/httpStatusText');
 
 router.route("/")
     .post(asyncWrapper(async (req, res) => {

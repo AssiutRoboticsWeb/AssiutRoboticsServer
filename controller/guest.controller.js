@@ -1,22 +1,22 @@
 
 
 
-const Guest = require('../models/guest");
+const Guest = require('../models/guest');
 
-const asyncHandler = require("../middleware/asyncWrapper");
+const asyncHandler = require('../middleware/asyncWrapper');
 
 const viewUser = asyncHandler(async (req, res) => {
-    const {ip,page}= req.body;
+    const { ip, page } = req.body;
 
-    const guest = await Guest.findOne({ip})
+    const guest = await Guest.findOne({ ip })
     if (!guest) {
-        const newGuest = await Guest.create({ip,views:[{page,count:1}]})
+        const newGuest = await Guest.create({ ip, views: [{ page, count: 1 }] })
         return res.status(200).json({
             success: true,
             message: 'تم إضافة المستخدم بنجاح'
         });
     }
-    
+
     const view = guest.views.find((view) => view.page === page);
     if (view) {
         view.count++;
@@ -48,8 +48,8 @@ const getViews = asyncHandler(async (req, res) => {
         page: view._id,
         count: view.count
     }));
-    console.log(views); 
-   
+    console.log(views);
+
     const gests = await Guest.find({});
     console.log(gests.length);
 
@@ -57,8 +57,8 @@ const getViews = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         views,
-        noOfGuests:gests.length,
-        guests:gests
+        noOfGuests: gests.length,
+        guests: gests
     });
 });
 

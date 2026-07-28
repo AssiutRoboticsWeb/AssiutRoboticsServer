@@ -1,7 +1,7 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const axios = require("axios");
-const moment = require("moment");
+const express = require('express');
+const dotenv = require('dotenv');
+const axios = require('axios');
+const moment = require('moment');
 
 dotenv.config();
 
@@ -17,7 +17,7 @@ const PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 async function getPagePosts(month, year) {
     const startDate = moment(`${year}-${month}-01`).startOf('month').unix();
     const endDate = moment(`${year}-${month}-01`).endOf('month').unix();
-    
+
     try {
         const response = await axios.get(`https://graph.facebook.com/v19.0/${PAGE_ID}/posts`, {
             params: {
@@ -51,7 +51,7 @@ async function getPostInteractions(postId) {
                 }
             })
         ]);
-        
+
         return {
             reactions: reactions.data.data,
             comments: comments.data.data
@@ -65,7 +65,7 @@ async function getPostInteractions(postId) {
 // Calculate user engagement rates
 function calculateUserEngagement(interactions) {
     const userEngagement = new Map();
-    
+
     // Process reactions
     interactions.forEach(post => {
         post.reactions.forEach(reaction => {
@@ -81,7 +81,7 @@ function calculateUserEngagement(interactions) {
             user.reactions++;
             user.totalInteractions++;
         });
-        
+
         // Process comments
         post.comments.forEach(comment => {
             const userId = comment.from.id;
@@ -98,7 +98,7 @@ function calculateUserEngagement(interactions) {
             user.totalInteractions++;
         });
     });
-    
+
     return Array.from(userEngagement.entries()).map(([userId, data]) => ({
         userId,
         ...data
@@ -115,7 +115,7 @@ app.get('/page-analytics', async (req, res) => {
 
         // Get all posts for the specified month
         const posts = await getPagePosts(month, year);
-        
+
         // Get detailed interactions for each post
         const postsWithInteractions = await Promise.all(
             posts.map(async (post) => {
@@ -128,13 +128,13 @@ app.get('/page-analytics', async (req, res) => {
                 };
             })
         );
-        
+
         // Calculate engagement rates
         const userEngagementStats = calculateUserEngagement(postsWithInteractions);
-        
+
         // Sort users by total interactions
         const sortedUsers = userEngagementStats.sort((a, b) => b.totalInteractions - a.totalInteractions);
-        
+
         res.json({
             totalPosts: posts.length,
             period: `${month}/${year}`,

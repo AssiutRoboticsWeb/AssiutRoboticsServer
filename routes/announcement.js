@@ -1,15 +1,15 @@
-const express = require("express");
+const express = require('express');
 
 const Router = express.Router();
 
-const announcementController = require("../controller/announcement.controller");
+const announcementController = require('../controller/announcement.controller');
 
-const jwt = require("../middleware/jwt");
+const jwt = require('../middleware/jwt');
 
 // Apply JWT middleware to all routes in this router
 Router.use(jwt.verify);
 // Add a new announcement
-Router.route("/add").post( announcementController.addAnnouncement);
+Router.route("/add").post(announcementController.addAnnouncement);
 
 // Get all announcements
 Router.route("/getAnnouncements")

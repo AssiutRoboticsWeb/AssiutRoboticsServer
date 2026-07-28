@@ -5,8 +5,8 @@ const path = require('path');
 const sendEmail = require('../utils/sendEmail');
 const createError = require('../utils/createError');
 const httpStatusText = require('../utils/httpStatusText');
-const { MEMBER_ROLES, COMMITTEES } = require("../utils/constants");
-const { uploadToCloud } = require("../utils/cloudinary");
+const { MEMBER_ROLES, COMMITTEES } = require('../utils/constants');
+const { uploadToCloud } = require('../utils/cloudinary');
 
 const createComponent = async (data, file, creatorEmail) => {
     const member = await Member.findOne({ email: creatorEmail });
@@ -22,7 +22,7 @@ const createComponent = async (data, file, creatorEmail) => {
     }
 
     const { title, price, taxes, ads, discount, total, category } = data;
-    
+
     const newComponent = new Component({
         title,
         image: imageUrl,
@@ -84,13 +84,13 @@ const sendBorrowNotification = async (memberEmail, componentId) => {
     try {
         const member = await Member.findOne({ email: memberEmail });
         const component = await Component.findById(componentId);
-        
+
         let sendTo = [];
-        
+
         // Notify Leaders
         const leaders = await Member.find({ role: MEMBER_ROLES.LEADER }, { email: 1 });
         leaders.forEach(l => sendTo.push(l.email));
-        
+
         // Notify OC Committee
         const ocMembers = await Member.find({ committee: COMMITTEES.OC }, { email: 1 });
         ocMembers.forEach(oc => sendTo.push(oc.email));
@@ -127,7 +127,7 @@ const requestBorrow = async (componentId, requesterEmail) => {
 
     const component = await Component.findById(componentId);
     if (!component) throw createError(404, httpStatusText.FAIL, "Component not found");
-    
+
     if (component.borrowedBy) throw createError(400, httpStatusText.FAIL, "Component is already borrowed");
     if (component.requestToBorrow) throw createError(400, httpStatusText.FAIL, "Component is already requested by someone else");
 
@@ -146,7 +146,7 @@ const processBorrowRequest = async (componentId, approverEmail, action, borrowDa
 
     const component = await Component.findById(componentId);
     if (!component) throw createError(404, httpStatusText.FAIL, "Component not found");
-    
+
     if (!component.requestToBorrow) throw createError(400, httpStatusText.FAIL, "No active borrow requests for this component");
 
     if (action === 'accept') {
@@ -182,7 +182,7 @@ const returnComponent = async (componentId, returnerEmail) => {
     }
 
     const returnDate = new Date();
-    
+
     component.history.push({
         member: component.borrowedBy.member,
         acceptedBy: component.borrowedBy.acceptedBy,
@@ -194,7 +194,7 @@ const returnComponent = async (componentId, returnerEmail) => {
 
     component.borrowedBy = null;
     await component.save();
-    
+
     return component;
 };
 

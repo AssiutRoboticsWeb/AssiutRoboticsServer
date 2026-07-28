@@ -25,7 +25,7 @@ const isProduction = NODE_ENV === 'production';
 // ============================================
 // Dependencies
 // ============================================
-const express = require("express");
+const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
@@ -36,7 +36,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const i18next = require('./middleware/i18n');
 const i18nextMiddleware = require('i18next-http-middleware');
-const fs = require("fs")
+const fs = require('fs');
 const path = require('path');
 
 const app = express();
@@ -370,7 +370,7 @@ let currentPort = parseInt(PORT, 10);
 
 const startServer = async () => {
     await connectDatabase();
-    
+
     const attemptListen = () => {
         server = app.listen(currentPort, () => {
             console.log('='.repeat(50));

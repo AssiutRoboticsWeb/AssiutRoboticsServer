@@ -68,11 +68,11 @@ const memberSchema = new mongoose.Schema({
     required: [true, "phone number is required"],
     validate: [validator.isMobilePhone, "enter a valid phone number"]
   },
- role: {
-  type: String,
-  enum: Object.values(MEMBER_ROLES),
-  default: MEMBER_ROLES.NOT_ACCEPTED
-},
+  role: {
+    type: String,
+    enum: Object.values(MEMBER_ROLES),
+    default: MEMBER_ROLES.NOT_ACCEPTED
+  },
 
   avatar: {
     type: String,
@@ -83,7 +83,7 @@ const memberSchema = new mongoose.Schema({
       value: { type: Number, required: true },
       month: { type: String, required: true }
     }
-  ],  
+  ],
 
   verified: {
     type: Boolean,
@@ -103,16 +103,16 @@ const memberSchema = new mongoose.Schema({
   feedBacks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'FeedBack' }],
 })
 
-const createError = require("../utils/createError");
+const createError = require('../utils/createError');
 const { required } = require('nodemon/lib/config');
 
 memberSchema.pre('save', async function (next) {
   // Only check registration deadline for new documents (not updates)
   if (this.isNew && Date.now() > new Date(REGISTRATION_DEADLINE)) {
     const error = createError(400, 'FAIL', "Registration is closed");
-    return next(error); 
+    return next(error);
   }
-  
+
 
   next();
 });

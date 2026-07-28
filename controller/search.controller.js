@@ -1,5 +1,5 @@
 const searchService = require('../services/search.service');
-const asyncWrapper = require("../middleware/asyncWrapper");
+const asyncWrapper = require('../middleware/asyncWrapper');
 const ApiResponse = require('../utils/apiResponse');
 
 const search = asyncWrapper(async (req, res) => {

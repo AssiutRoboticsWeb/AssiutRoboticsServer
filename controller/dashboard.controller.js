@@ -1,5 +1,5 @@
 const dashboardService = require('../services/dashboard.service');
-const asyncWrapper = require("../middleware/asyncWrapper");
+const asyncWrapper = require('../middleware/asyncWrapper');
 const ApiResponse = require('../utils/apiResponse');
 
 const getLeaderDashboard = asyncWrapper(async (req, res) => {
@@ -12,7 +12,7 @@ const getCommitteeDashboard = asyncWrapper(async (req, res) => {
     // But since the Head only governs their own committee, we can pull it directly.
     const Member = require('../models/member');
     const member = await Member.findOne({ email: req.decoded.email });
-    
+
     if (!member) {
         throw require('../utils/createError')(404, 'Fail', 'Member not found');
     }

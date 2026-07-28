@@ -1,7 +1,7 @@
-const Meeting = require('../models/meeting");
-const Member = require('../models/member");
-const asyncWrapper = require("../middleware/asyncWrapper");
-const { MEETING_CONFIG } = require("../utils/constants");
+const Meeting = require('../models/meeting');
+const Member = require('../models/member');
+const asyncWrapper = require('../middleware/asyncWrapper');
+const { MEETING_CONFIG } = require('../utils/constants');
 
 
 
@@ -118,7 +118,7 @@ const bookMeeting = asyncWrapper(async (req, res) => {
 
 
 
-module.exports={
+module.exports = {
     createMeeting,
     getMeetings,
     getMeetingById,

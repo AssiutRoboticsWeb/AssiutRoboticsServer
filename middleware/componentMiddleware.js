@@ -1,7 +1,7 @@
-const asyncWrapper = require("./asyncWrapper");
-const createError = require("../utils/createError");
-const component = require('../models/component");
-const Member = require('../models/member");
+const asyncWrapper = require('./asyncWrapper');
+const createError = require('../utils/createError');
+const component = require('../models/component');
+const Member = require('../models/member');
 
 // Validate required fields in request body
 const validateRequest = (requiredFields) => {

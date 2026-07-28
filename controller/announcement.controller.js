@@ -1,9 +1,9 @@
-const Announcement = require('../models/announcement");
-const asyncWrapper = require("../middleware/asyncWrapper");
-const httpStatusText = require("../utils/httpStatusText");
-const createError = require("../utils/createError");
-const Member = require('../models/member");
-const Track = require('../models/track");
+const Announcement = require('../models/announcement');
+const asyncWrapper = require('../middleware/asyncWrapper');
+const httpStatusText = require('../utils/httpStatusText');
+const createError = require('../utils/createError');
+const Member = require('../models/member');
+const Track = require('../models/track');
 // إضافة إعلان
 const addAnnouncement = asyncWrapper(async (req, res) => {
     const { title, content, dateOfDelete, trackId } = req.body;

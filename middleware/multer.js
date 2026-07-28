@@ -1,6 +1,6 @@
-const multer = require("multer");
-const path = require("path");
-const createError = require("../utils/createError");
+const multer = require('multer');
+const path = require('path');
+const createError = require('../utils/createError');
 const fs = require('fs');
 
 // Ensure uploads directory exists
@@ -15,7 +15,7 @@ const diskStorage = multer.diskStorage({
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
         const filename = `${file.fieldname}_${Date.now()}${ext}`;
-        req.generatedFilename = filename; 
+        req.generatedFilename = filename;
         cb(null, filename);
     }
 });
@@ -30,8 +30,8 @@ const imageFilter = (req, file, cb) => {
 
 const documentFilter = (req, file, cb) => {
     const allowedTypes = [
-        "application/pdf", 
-        "application/msword", 
+        "application/pdf",
+        "application/msword",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ];
     if (!allowedTypes.includes(file.mimetype)) {

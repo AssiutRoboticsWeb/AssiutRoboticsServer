@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
 
 const courseController = require('../controller/course_controller');
@@ -20,9 +20,9 @@ Router.get("/", courseController.getAllCourses);
 
 // Get single course by ID, Update course by ID, Delete course by ID
 Router.route("/:id")
-    .get(courseController.getCourseById)
-    .put(courseController.updateCourse)
-    .delete(courseController.deleteCourse);
+  .get(courseController.getCourseById)
+  .put(courseController.updateCourse)
+  .delete(courseController.deleteCourse);
 
 // ====== Course Track Management ======
 

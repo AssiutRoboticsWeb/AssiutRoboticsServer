@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const meetingSchema = new mongoose.Schema({
     title: { type: String, required: true },
@@ -8,10 +8,10 @@ const meetingSchema = new mongoose.Schema({
         type: [[{
             time: String,
             isBooked: { type: Boolean, default: false },
-            bookedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Member',  }]
-        }]],                                                                                                                                                  
+            bookedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Member', }]
+        }]],
         validate: {
-            validator: function(array) {
+            validator: function (array) {
                 return array.length === 7 && array.every(day => Array.isArray(day));
             },
             message: "يجب أن يكون جدول التواريخ مصفوفة ثنائية الأبعاد تمثل أيام الأسبوع"
@@ -19,7 +19,7 @@ const meetingSchema = new mongoose.Schema({
     },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Member' }],
 
-    
+
 })
 
 const Meeting = mongoose.model("Meeting", meetingSchema);

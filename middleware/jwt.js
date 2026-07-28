@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const createError = require("../utils/createError");
-const httpStatusText = require("../utils/httpStatusText");
+const createError = require('../utils/createError');
+const httpStatusText = require('../utils/httpStatusText');
 
 const generateToken = (payload, expiresIn = "1h") => {
     return jwt.sign(payload, process.env.SECRET, { expiresIn });

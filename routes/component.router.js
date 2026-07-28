@@ -1,14 +1,14 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
 
-const componentController = require("../controller/component.controller");
-const JWT = require("../middleware/jwt");
-const { uploadImage } = require("../middleware/multer");
-const apiFeatures = require("../middleware/apiFeatures");
-const Component = require("../models/component");
-const Member = require("../models/member");
-const asyncWrapper = require("../middleware/asyncWrapper");
-const createError = require("../utils/createError");
+const componentController = require('../controller/component.controller');
+const JWT = require('../middleware/jwt');
+const { uploadImage } = require('../middleware/multer');
+const apiFeatures = require('../middleware/apiFeatures');
+const Component = require('../models/component');
+const Member = require('../models/member');
+const asyncWrapper = require('../middleware/asyncWrapper');
+const createError = require('../utils/createError');
 
 // Simple Role Validation Middleware for OC
 const OC_validate = asyncWrapper(async (req, res, next) => {
@@ -20,10 +20,10 @@ const OC_validate = asyncWrapper(async (req, res, next) => {
 });
 
 // Create Component (requires image)
-Router.post("/add", 
-    JWT.verify, 
-    OC_validate, 
-    uploadImage.single("image"), 
+Router.post("/add",
+    JWT.verify,
+    OC_validate,
+    uploadImage.single("image"),
     componentController.addComponent
 );
 

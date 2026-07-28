@@ -2,24 +2,24 @@ const member = require('../models/member');
 const Visits = require('../models/visits');
 
 // jwt
-const jwt = require("../middleware/jwt");
+const jwt = require('../middleware/jwt');
 
 //bcrypt
-const bcrypt = require("../middleware/bcrypt");
+const bcrypt = require('../middleware/bcrypt');
 
 // http status text
-const httpStatusText = require("../utils/httpStatusText");
+const httpStatusText = require('../utils/httpStatusText');
 
 //async wrapper
-const asyncWrapper = require("../middleware/asyncWrapper");
+const asyncWrapper = require('../middleware/asyncWrapper');
 
 // send email
-const sendEmail = require("../utils/sendEmail");
+const sendEmail = require('../utils/sendEmail');
 // otp
-const otp = require("../utils/otp");
+const otp = require('../utils/otp');
 
-const strongPassword = require("../utils/strongPass");
-const createError = require("../utils/createError")
+const strongPassword = require('../utils/strongPass');
+const createError = require('../utils/createError')
 
 const authRole = require('../middleware/authorizeRoles')
 const { REGISTRATION_DEADLINE, MEMBER_ROLES, DEFAULT_AVATAR, COMMITTEES, JWT_EXPIRY } = require('../utils/constants');
@@ -27,8 +27,8 @@ const { REGISTRATION_DEADLINE, MEMBER_ROLES, DEFAULT_AVATAR, COMMITTEES, JWT_EXP
 
 
 
-const { decode } = require("jsonwebtoken");
-const fs = require("fs")
+const { decode } = require('jsonwebtoken');
+const fs = require('fs');
 const path = require('path');
 
 
@@ -45,7 +45,7 @@ const filePath = path.join(__dirname, '../public/verifyEmail.html');
 //         console.log(`member ${i} saved`);
 //         i++;
 //     })
-//     console.log("Visits deleted successfully");
+//     console.log("Visits deleted successfully');
 // }
 
 // deleteVisits();
@@ -536,7 +536,7 @@ const rate = async (req, res) => {
             //     }
             // }
             // if (MEMBER.warnings > 2) {
-            //     console.log("delete");
+            //     console.log("delete');
             //     await member.deleteOne({ _id: ID });
             // }
             MEMBER.save();

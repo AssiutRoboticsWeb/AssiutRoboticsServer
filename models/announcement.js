@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const announcementSchema = new mongoose.Schema({
   title: {
@@ -13,8 +13,8 @@ const announcementSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  creator: { 
-    type: mongoose.Schema.Types.ObjectId, 
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Member' // لأن Admin و Student و Assistant كلهم من member
   },
   track: {

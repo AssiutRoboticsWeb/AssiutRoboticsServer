@@ -1,7 +1,7 @@
-const express = require("express");
+const express = require('express');
 
-const blogController = require("../controller/blog.controller");
-const JWT = require("../middleware/jwt");
+const blogController = require('../controller/blog.controller');
+const JWT = require('../middleware/jwt');
 const Router = express.Router();
 
 Router.route("/add").post(blogController.addBlog);

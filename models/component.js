@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const componentSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -11,7 +11,7 @@ const componentSchema = new mongoose.Schema({
   category: { type: String },
   deleted: { type: Boolean, default: false },
   deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' },
-  creation: { 
+  creation: {
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' },
     createdAt: { type: Date, default: Date.now },
   },
@@ -21,13 +21,13 @@ const componentSchema = new mongoose.Schema({
       updatedAt: { type: Date, default: Date.now },
     }
   ],
-  requestToBorrow:{
+  requestToBorrow: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Member',
     default: null
-  } ,
+  },
   // إضافة حقول الاستعارة
-  borrowedBy: { 
+  borrowedBy: {
     type: {
       member: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' },
       acceptedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' },

@@ -1,7 +1,7 @@
 
 
 
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const guestSchema = new Schema({
@@ -10,7 +10,7 @@ const guestSchema = new Schema({
         required: true,
         unique: true
     },
-    views:[{
+    views: [{
         page: {
             type: String,
         },

@@ -1,5 +1,5 @@
 const componentService = require('../services/component.service');
-const asyncWrapper = require("../middleware/asyncWrapper");
+const asyncWrapper = require('../middleware/asyncWrapper');
 const httpStatusText = require('../utils/httpStatusText');
 const ApiResponse = require('../utils/apiResponse');
 

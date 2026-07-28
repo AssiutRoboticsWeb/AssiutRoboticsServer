@@ -1,18 +1,18 @@
-const express = require("express");
+const express = require('express');
 
-const memberController = require("../controller/member.controller");
-const JWT = require("../middleware/jwt");
+const memberController = require('../controller/member.controller');
+const JWT = require('../middleware/jwt');
 const Router = express.Router();
-const multer = require("multer");
-const otp = require("../utils/otp");
+const multer = require('multer');
+const otp = require('../utils/otp');
 
 
-const { uploadToCloud } = require("../utils/cloudinary");
+const { uploadToCloud } = require('../utils/cloudinary');
 
 
 // const diskStorage = multer.diskStorage({
 //         destination: (req, file, cb) => {
-//                 cb(null, "books/");
+//                 cb(null, "books/');
 //         },
 //         filename: (req, file, cb) => {
 //                 const ext = file.mimetype.split("/")[1];
@@ -147,7 +147,7 @@ Router.route("/rate").post(JWT.verify, memberController.rate);
 
 
 
-// const Member = require('../models/member");
+// const Member = require('../models/member');
 
 Router.route("/:memberId/addTask").post(JWT.verify, memberController.addTask)
 
