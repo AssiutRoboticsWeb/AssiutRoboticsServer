@@ -10,7 +10,7 @@ const requiredEnvVars = ['PORT', 'MONGOURL', 'SECRET'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
-    console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+    console.error('Missing required environment variables:', missingEnvVars.join(', '));
     process.exit(1);
 }
 
