@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const Visits = require('../models/visits");
-const Member = require('../models/member");
+const Visits = require('../models/visits');
+const Member = require('../models/member');
 
 const asyncWrapper = require("../middleware/asyncWrapper");
 
