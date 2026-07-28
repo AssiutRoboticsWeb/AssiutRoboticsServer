@@ -64,6 +64,8 @@ const projectRouter = require('./routes/project.router');
 const eventRouter = require('./routes/event.router');
 const secretApplicantRouter = require('./routes/secretApplicant.router');
 const authRouter = require('./routes/auth.router');
+const dashboardRouter = require('./routes/dashboard.router');
+const searchRouter = require('./routes/search.router');
 
 // ============================================
 // Utils
@@ -243,6 +245,8 @@ app.get('/health', (req, res) => {
 // API Routes
 // ============================================
 app.use("/api/auth", authRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/search", searchRouter);
 app.use("/api/members", memberRouter);
 app.use("/api/blogs", blogRouter);
 app.use("/api/components", componentRouter);

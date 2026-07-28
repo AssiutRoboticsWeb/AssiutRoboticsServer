@@ -1,95 +1,87 @@
 const express = require("express");
-const componentController = require("../controller/component.controller.js");
-const JWT = require("../middleware/jwt.js");
 const Router = express.Router();
-const multer = require("multer");
-const { uploadToCloud } = require("../utils/cloudinary");
+
+const componentController = require("../controller/component.controller");
+const JWT = require("../middleware/jwt");
+const { uploadImage } = require("../middleware/multer");
+const apiFeatures = require("../middleware/apiFeatures");
+const Component = require("../models/component");
+const Member = require("../models/member");
 const asyncWrapper = require("../middleware/asyncWrapper");
-const Member = require('../models/member");
 const createError = require("../utils/createError");
 
-const OC_validate=asyncWrapper(async (req, res, next) => {
-    const email=req.decoded.email;
-    const  member= await Member.findOne({email});
-    
-
-    if (member.committee !== "OC" && member.role !== "leader") {
-        const error=createError(403, 'Fail',"this operation is only for OC")
-        throw(error);
-        return;
+// Simple Role Validation Middleware for OC
+const OC_validate = asyncWrapper(async (req, res, next) => {
+    const member = await Member.findOne({ email: req.decoded.email });
+    if (member.committee !== "OC" && member.role !== "leader" && member.role !== "head") {
+        throw createError(403, 'Fail', "This operation is only for OC members or leadership");
     }
     next();
-})
-
-// Multer configuration
-const diskStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/"); // Save locally before uploading to Cloudinary
-    },
-    filename: (req, file, cb) => {
-        const ext = file.mimetype.split("/")[1];
-        const filename = `${file.originalname.split(".")[0]}_${Date.now()}.${ext}`;
-        req.myFileName = filename;
-        cb(null, filename);
-    },
 });
 
-const fileFilter = (req, file, cb) => {
-    const imageType = file.mimetype.split("/")[1];
-    if (imageType === "jpg" || imageType === "jpeg" || imageType === "png") {
-        return cb(null, true); // Only allow JPG and PNG files
-    } else {
-        return cb(new Error("Only images (jpg, jpeg, png) are allowed!"), false);
-    }
-};
-
-// Multer middleware
-const upload = multer({
-    storage: diskStorage,
-    fileFilter,
-});
-
-// Cloudinary image upload route
-Router.route("/add").post(
-    upload.single("image"),
-    async (req, res, next) => {
-        try {
-            if (!req.file) {
-                return res.status(400).send('No file uploaded.');
-            }
-
-            // Upload image to Cloudinary using the utility function
-            const imageUrl = await uploadToCloud(req.file.path); // Passing the file path to Cloudinary
-            req.imageUrl = imageUrl;
-            next()
-            //     res.status(200).json({
-            //         message: 'Image uploaded successfully!',
-            //         url: imageUrl, // Cloudinary URL of the uploaded image
-            //     });
-        } catch (error) {
-            res.status(500).json({ message: 'Error uploading image', error });
-        }
-    },
+// Create Component (requires image)
+Router.post("/add", 
+    JWT.verify, 
+    OC_validate, 
+    uploadImage.single("image"), 
     componentController.addComponent
 );
-Router.route("/getComponents").get(componentController.getCombonent);
 
-Router.route("/update").post(JWT.verify,OC_validate,componentController.updateComponent);
+// Get All Components (supports Pagination, Filtering, Sorting)
+Router.get("/getComponents",
+    apiFeatures(Component, [
+        { path: 'requestToBorrow', select: 'name email committee phoneNumber avatar' },
+        { path: 'borrowedBy.member', select: 'name email committee phoneNumber avatar' },
+        { path: 'history.member', select: 'name email committee phoneNumber avatar' }
+    ]),
+    componentController.advancedResultsHandler
+);
 
-Router.route("/deleteOne").post(JWT.verify,OC_validate,componentController.deleteOne);
+// Get Components (Deleted, Requested, Borrowed, History)
+// We can use apiFeatures by passing specific queries in the request (e.g. ?deleted=true), 
+// but since the frontend expects specific endpoints, we mimic them with injected queries.
+Router.get("/getDeletedComponent",
+    (req, res, next) => { req.query.deleted = 'true'; next(); },
+    apiFeatures(Component, [
+        { path: 'deletedBy', select: 'name email committee phoneNumber avatar' }
+    ]),
+    componentController.advancedResultsHandler
+);
 
-// Routes for borrowing and returning components
-// Router.route("/borrow").post(JWT.verify,OC_validate,componentController.borrowComponent);
-Router.route("/return").post(JWT.verify,OC_validate,componentController.returnComponent);
+Router.get("/getRequestedComponent",
+    (req, res, next) => { req.query['requestToBorrow[ne]'] = 'null'; next(); },
+    apiFeatures(Component, [
+        { path: 'requestToBorrow', select: 'name email committee phoneNumber avatar' }
+    ]),
+    componentController.advancedResultsHandler
+);
 
-// Routes for requested and borrowed components
-Router.route("/requestToBorrow").post(JWT.verify,componentController.requestToBorrow);
-Router.route("/acceptRequestToBorrow").post(JWT.verify,OC_validate,componentController.acceptRequestToBorrow);
-Router.route("/rejectRequestToBorrow").post(JWT.verify,OC_validate,componentController.rejectRequestToBorrow);
-Router.route("/getRequestedComponent").get(JWT.verify,OC_validate,componentController.getRequestedComponent);
-Router.route("/getBorrowedComponent").get(JWT.verify,OC_validate,componentController.getBorrowedComponent);
-Router.route("/getHistoryComponent").get(JWT.verify,OC_validate,componentController.getHistoryComponent);
-Router.route("/getDeletedComponent").get(componentController.getDeletedComponent);
+Router.get("/getBorrowedComponent",
+    (req, res, next) => { req.query['borrowedBy[ne]'] = 'null'; next(); },
+    apiFeatures(Component, [
+        { path: 'borrowedBy.member', select: 'name email committee phoneNumber avatar' }
+    ]),
+    componentController.advancedResultsHandler
+);
 
+Router.get("/getHistoryComponent",
+    (req, res, next) => { req.query['history[ne]'] = '[]'; next(); },
+    apiFeatures(Component, [
+        { path: 'history.member', select: 'name email committee phoneNumber avatar' },
+        { path: 'history.acceptedBy', select: 'name email committee phoneNumber avatar' },
+        { path: 'history.returnBy', select: 'name email committee phoneNumber avatar' }
+    ]),
+    componentController.advancedResultsHandler
+);
+
+// Actions
+Router.post("/update", JWT.verify, OC_validate, componentController.updateComponent);
+Router.post("/deleteOne", JWT.verify, OC_validate, componentController.deleteOne);
+Router.post("/return", JWT.verify, OC_validate, componentController.returnComponent);
+
+// Borrow Requests
+Router.post("/requestToBorrow", JWT.verify, componentController.requestToBorrow);
+Router.post("/acceptRequestToBorrow", JWT.verify, OC_validate, componentController.acceptRequestToBorrow);
+Router.post("/rejectRequestToBorrow", JWT.verify, OC_validate, componentController.rejectRequestToBorrow);
 
 module.exports = Router;
