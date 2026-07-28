@@ -56,6 +56,11 @@ const trackRouter = require('./routes/track.js');
 const courseRouter = require('./routes/course.js');
 const applicantRouter = require('./routes/applicant.js');
 const tracksysRouter = require('./routes/tracksys.js');
+const taskRouter = require('./routes/task.router');
+const historyRouter = require('./routes/history.router');
+const projectRouter = require('./routes/project.router');
+const eventRouter = require('./routes/event.router');
+const secretApplicantRouter = require('./routes/secretApplicant.router');
 
 // ============================================
 // Utils
@@ -248,6 +253,11 @@ app.use("/api/tracks", trackRouter);
 app.use("/api/courses", courseRouter);
 app.use("/api/applicants", applicantRouter);
 app.use("/api/tracksys", tracksysRouter);
+app.use("/api/tasks", taskRouter);
+app.use("/api/history", historyRouter);
+app.use("/api/projects", projectRouter);
+app.use("/api/events", eventRouter);
+app.use("/api/secret-apply", secretApplicantRouter);
 
 // Legacy routes (for backward compatibility)
 app.use("/members", memberRouter);
