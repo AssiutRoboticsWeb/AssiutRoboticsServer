@@ -6,7 +6,7 @@ require('dotenv').config();
 // ============================================
 // Environment Variable Validation
 // ============================================
-const requiredEnvVars = ['PORT', 'MONGOURL', 'SECRET'];
+const requiredEnvVars = ['MONGOURL', 'SECRET'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
