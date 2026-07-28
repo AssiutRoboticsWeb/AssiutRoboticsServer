@@ -374,18 +374,34 @@ if (isDevelopment && process.env.GENERATE_API_ENDPOINTS === "true") {
 // Server Startup
 // ============================================
 let server;
+let currentPort = parseInt(PORT, 10);
+
 const startServer = async () => {
     await connectDatabase();
-    server = app.listen(PORT, () => {
-        console.log('='.repeat(50));
-        console.log(`🚀 Assiut Robotics Server`);
-        console.log('='.repeat(50));
-        console.log(`📍 Environment: ${NODE_ENV}`);
-        console.log(`🌐 Server: http://localhost:${PORT}`);
-        console.log(`💚 Health Check: http://localhost:${PORT}/health`);
-        console.log(`⏰ Started: ${new Date().toLocaleString()}`);
-        console.log('='.repeat(50));
-    });
+    
+    const attemptListen = () => {
+        server = app.listen(currentPort, () => {
+            console.log('='.repeat(50));
+            console.log(`🚀 Assiut Robotics Server`);
+            console.log('='.repeat(50));
+            console.log(`📍 Environment: ${NODE_ENV}`);
+            console.log(`🌐 Server: http://localhost:${currentPort}`);
+            console.log(`💚 Health Check: http://localhost:${currentPort}/health`);
+            console.log(`⏰ Started: ${new Date().toLocaleString()}`);
+            console.log('='.repeat(50));
+        }).on('error', (error) => {
+            if (error.code === 'EADDRINUSE') {
+                console.warn(`⚠️  Port ${currentPort} is in use, trying ${currentPort + 1}...`);
+                currentPort++;
+                attemptListen();
+            } else {
+                console.error('❌ Server error:', error);
+                process.exit(1);
+            }
+        });
+    };
+
+    attemptListen();
 };
 startServer();
 
