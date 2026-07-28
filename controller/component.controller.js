@@ -1,4 +1,4 @@
-const component = require("../mongoose.models/component");
+const component = require('../models/component");
 const path = require('path');
 const fs = require('fs');
 const sendEmail = require('../utils/sendEmail');
@@ -6,7 +6,7 @@ const cloudinary=require('../utils/cloudinary');
 const { uploadToCloud } = require("../utils/cloudinary");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const createError = require("../utils/createError");
-const Member = require("../mongoose.models/member");
+const Member = require('../models/member");
 const { MEMBER_ROLES, COMMITTEES } = require("../utils/constants");
 
 const addComponent = async (req, res) => {

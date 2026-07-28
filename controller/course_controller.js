@@ -1,7 +1,7 @@
-const Course = require('../mongoose.models/course');
-const Track = require('../mongoose.models/track');
+const Course = require('../models/course');
+const Track = require('../models/track');
 const asyncWrapper = require('../middleware/asyncWrapper');
-const Member = require('../mongoose.models/member');
+const Member = require('../models/member');
 const jwt = require('../middleware/jwt');
 
 // ================== COURSE CRUD ==================

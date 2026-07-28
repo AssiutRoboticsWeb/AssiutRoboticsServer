@@ -1,5 +1,5 @@
-const Meeting = require("../mongoose.models/meeting");
-const Member = require("../mongoose.models/member");
+const Meeting = require('../models/meeting");
+const Member = require('../models/member");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const { MEETING_CONFIG } = require("../utils/constants");
 

@@ -1,5 +1,5 @@
-const member = require("../mongoose.models/member");
-const Visits = require("../mongoose.models/visits");
+const member = require('../models/member");
+const Visits = require('../models/visits");
 
 // jwt
 const jwt = require("../middleware/jwt");

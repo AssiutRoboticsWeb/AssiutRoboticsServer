@@ -1,7 +1,7 @@
 const asyncWrapper = require('../middleware/asyncWrapper');
-const Track = require('../mongoose.models/track');
-const Course = require('../mongoose.models/course');
-const Member = require('../mongoose.models/member');
+const Track = require('../models/track');
+const Course = require('../models/course');
+const Member = require('../models/member');
 const createError = require('../utils/createError');
 const httpStatusText = require('../utils/httpStatusText');
 

@@ -147,7 +147,7 @@ Router.route("/rate").post(JWT.verify, memberController.rate);
 
 
 
-// const Member = require("../mongoose.models/member");
+// const Member = require('../models/member");
 
 Router.route("/:memberId/addTask").post(JWT.verify, memberController.addTask)
 

@@ -1,4 +1,4 @@
-const member = require("../mongoose.models/member");
+const member = require('../models/member");
 const createError = require("../utils/createError");
 const asyncWrapper = require("./asyncWrapper");
 

@@ -1,4 +1,4 @@
-// const committees = require('../mongoose.models/committee');
+// const committees = require('../models/committee');
 
 // const logger = require('../utils/logger');
 

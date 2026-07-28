@@ -1,9 +1,9 @@
 
-const Track = require('../mongoose.models/track');
-const Course = require('../mongoose.models/course'); 
+const Track = require('../models/track');
+const Course = require('../models/course'); 
 const asyncWrapper = require('../middleware/asyncWrapper');
 const createError = require('../utils/createError');
-const Member = require('../mongoose.models/member');
+const Member = require('../models/member');
 
 // Create a new track
 const createTrack = asyncWrapper(async (req, res, next) => {

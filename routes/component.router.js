@@ -5,7 +5,7 @@ const Router = express.Router();
 const multer = require("multer");
 const { uploadToCloud } = require("../utils/cloudinary");
 const asyncWrapper = require("../middleware/asyncWrapper");
-const Member = require("../mongoose.models/member");
+const Member = require('../models/member");
 const createError = require("../utils/createError");
 
 const OC_validate=asyncWrapper(async (req, res, next) => {

@@ -1,7 +1,7 @@
 
 
 
-const Guest = require("../mongoose.models/guest");
+const Guest = require('../models/guest");
 
 const asyncHandler = require("../middleware/asyncWrapper");
 

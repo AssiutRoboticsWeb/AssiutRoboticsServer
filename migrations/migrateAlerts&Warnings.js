@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Member = require('../mongoose.models/member'); // adjust path as needed
+const Member = require('../models/member'); // adjust path as needed
 
 async function migrateAlertsAndWarnings() {
   if (!process.env.MONGOURL) {

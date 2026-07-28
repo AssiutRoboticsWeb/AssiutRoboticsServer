@@ -1,4 +1,4 @@
-const Member = require("../mongoose.models/member"); // استدعاء الموديل الخاص بالمستخدمين
+const Member = require('../models/member"); // استدعاء الموديل الخاص بالمستخدمين
 
 const authorizeRoles = (allowedRoles) => {
     return async (req, res, next) => {

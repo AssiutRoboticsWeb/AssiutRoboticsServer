@@ -35,62 +35,8 @@ const { REGISTRATION_DEADLINE, MEMBER_ROLES, MESSAGE_STATUS, DEFAULT_AVATAR } = 
 
 
 
-const memberTaskSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: String,
-  startDate: Date,
-  deadline: Date,
-  submissionDate: Date,
-  taskUrl: String,
-  submissionLink: {
-    type: String,
-    default: "*"
-  },
-  downloadSubmissionUrl:String,
-  submissionFileId:String,
-  headEvaluation: {
-    type: Number,
-    default: -1
-  },
-  headPercent: {
-    type: Number,
-    default: 60
-  },
-  deadlineEvaluation: {
-    type: Number,
-    default: 0
-  },
-  deadlinePercent: {
-    type: Number,
-    default: 40,
-  },
-  rate: Number,
-  points: Number, 
-});
-
-
-const hrRateSchema = new mongoose.Schema({
-  month: {
-    type: String,
-    required: [true, "month is required"]
-  },
-  memberId: {
-    type: String,
-    required: [true, "member ID is required"]
-  },
-  meetingScore: {
-    type: Number,
-    default: 0,
-  },
-  behaviorScore: {
-    type: Number,
-    default: 0,
-  },
-  interactionScore: {
-    type: Number,
-    default: 0,
-  },
-});
+// Embedded schemas for tasks, hr_rates, tracks have been extracted to separate models
+// (Task, HRRate, Message, Notification, TrackEnrollment) to prevent document bloat.
 
 
 const memberSchema = new mongoose.Schema({
@@ -107,30 +53,7 @@ const memberSchema = new mongoose.Schema({
     type: String,
     required: [true, "password is required"],
   },
-  messages: [{
-    title: {
-      type: String,
-      required: [true, "message title is required"]
-    },
-    body: {
-      type: String,
-      required: [true, "message body is required"]
-    },
-    date: {
-      type: String,
-      required: [true, "message date is required"]
-    }
-    ,
-    status: {
-      type: String,
-      enum: Object.values(MESSAGE_STATUS),
-      default: MESSAGE_STATUS.UNREAD
-    },
-    links: [{
-      label: String,
-      url: String
-    }]
-  }],
+
 
   committee: {
     type: String,
@@ -161,14 +84,7 @@ const memberSchema = new mongoose.Schema({
       month: { type: String, required: true }
     }
   ],  
-  alerts: {
-    type: mongoose.Schema.Types.Mixed,
-    default: []
-  },
-  warnings: {
-    type: mongoose.Schema.Types.Mixed,
-    default: []
-  },
+
   verified: {
     type: Boolean,
     default: false
@@ -176,32 +92,7 @@ const memberSchema = new mongoose.Schema({
   secretKey: {
     type: String,
   },
-  startedTracks: [
-    {
-      track: { type: mongoose.Schema.Types.ObjectId, ref: 'Track' },
-      courses: [
-        {
-          course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-          submittedTasks: [
-            {
-              task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
-              submissionLink: String,
-              submittedAt: {
-                type: Date,
-                default: Date.now
-              }
-              ,
-              rate: String,
-              notes: String,
-            },
-          ],
-        },
-      ],
-    },
-  ],
 
-  tasks: [memberTaskSchema],
-  hr_rate: [hrRateSchema],
 
 
 
@@ -219,14 +110,7 @@ memberSchema.pre('save', async function (next) {
     return next(error); 
   }
   
-  // Convert old numeric alerts/warnings to arrays for backward compatibility
-  if (typeof this.alerts === 'number') {
-    this.alerts = [];
-  }
-  if (typeof this.warnings === 'number') {
-    this.warnings = [];
-  }
-  
+
   next();
 });
 

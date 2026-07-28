@@ -1,7 +1,7 @@
 const asyncWrapper = require('../middleware/asyncWrapper');
-const Track = require('../mongoose.models/track');
+const Track = require('../models/track');
 const createError = require('../utils/createError');
-const Member = require('../mongoose.models/member');
+const Member = require('../models/member');
 
 // apply for track
 const createApplicant = asyncWrapper(async (req, res, next) => {

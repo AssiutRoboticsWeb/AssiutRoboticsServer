@@ -11,7 +11,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const Member = require('../mongoose.models/member');
+const Member = require('../models/member');
 
 // ============================================
 // Configuration

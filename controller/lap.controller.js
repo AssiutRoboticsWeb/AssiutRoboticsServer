@@ -1,5 +1,5 @@
-const LapDate = require('../mongoose.models/lapDate');
-const Member = require('../mongoose.models/member');
+const LapDate = require('../models/lapDate');
+const Member = require('../models/member');
 const asyncWrapper = require('../middleware/asyncWrapper');
 const createError = require('../utils/createError');
 const httpStatusText = require('../utils/httpStatusText');

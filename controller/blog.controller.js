@@ -1,4 +1,4 @@
-const blog = require("../mongoose.models/blog");
+const blog = require('../models/blog");
 
 const addBlog = async (req, res) => {
     try {

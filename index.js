@@ -43,19 +43,19 @@ app.set('trust proxy', isProduction ? 1 : false);
 // ============================================
 // Routers
 // ============================================
-const memberRouter = require('./routers/member.router');
-const blogRouter = require('./routers/blog.router');
-const componentRouter = require('./routers/component.router');
-const lapDateRouter = require('./routers/lapDates.js');
-const visitRouter = require('./routers/visit.js');
-const announcementRouter = require('./routers/announcement');
-const meetingRouter = require('./routers/meeting');
-const guestRouter = require('./routers/guest.js');
-const webhookRoutes = require('./routers/webhook.router.js');
-const trackRouter = require('./routers/track.js');
-const courseRouter = require('./routers/course.js');
-const applicantRouter = require('./routers/applicant.js');
-const tracksysRouter = require('./routers/tracksys.js');
+const memberRouter = require('./routes/member.router');
+const blogRouter = require('./routes/blog.router');
+const componentRouter = require('./routes/component.router');
+const lapDateRouter = require('./routes/lapDates.js');
+const visitRouter = require('./routes/visit.js');
+const announcementRouter = require('./routes/announcement');
+const meetingRouter = require('./routes/meeting');
+const guestRouter = require('./routes/guest.js');
+const webhookRoutes = require('./routes/webhook.router.js');
+const trackRouter = require('./routes/track.js');
+const courseRouter = require('./routes/course.js');
+const applicantRouter = require('./routes/applicant.js');
+const tracksysRouter = require('./routes/tracksys.js');
 
 // ============================================
 // Utils
