@@ -196,20 +196,22 @@ const login = asyncWrapper(async (req, res) => {
     // Correct token generation without calling generateToken as a function
     const token = await jwt.generateToken({ email }, remember ? JWT_EXPIRY.LONG : JWT_EXPIRY.DEFAULT);
 
-    // check if the ip is already in the visits array
-    const visit = await Visits.findOne({ ip }, { _id: 1 });
+    let visit = await Visits.findOne({ ip }, { _id: 1 });
     if (!visit) {
         const newVisit = new Visits({ ip });
-        await newVisit.save();
-        oldMember.visits.push(newVisit._id);
-    } else {
-        if (!oldMember.visits.includes(visit._id)) {
-            oldMember.visits.push(visit._id);
-        }
+        visit = await newVisit.save();
     }
-
-
-    await oldMember.save();
+    
+    // Add to local object if not present to keep response consistent
+    if (!oldMember.visits.includes(visit._id)) {
+        oldMember.visits.push(visit._id);
+    }
+    
+    // Use updateOne with $addToSet to avoid VersionError on concurrent logins
+    await member.updateOne(
+        { _id: oldMember._id },
+        { $addToSet: { visits: visit._id } }
+    );
     res.status(200).json({
         status: httpStatusText.SUCCESS,
         data: { token: token, memberData: oldMember },
