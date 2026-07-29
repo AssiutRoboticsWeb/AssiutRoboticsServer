@@ -1,6 +1,9 @@
 # Node modules
 node_modules/
 
+# Backup Folder
+backup/
+
 # Environment variables
 .env
 .env.local

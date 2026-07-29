@@ -80,6 +80,8 @@ const defaultProductionOrigins = [
     'https://assiut-robotics-website-xi.vercel.app',
     'https://assiutrobotics.vercel.app',
     'https://assiut-robotics-website-zeta.vercel.app',
+    'https://staging-robotics-website.vercel.app',
+    'https://staging-robotics-website-zeta.vercel.app',
     'http://localhost:3000',
     'http://localhost:5000',
 ];
