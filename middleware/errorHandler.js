@@ -35,14 +35,10 @@ const errorHandler = (err, req, res, next) => {
     }
 
     const isDevelopment = process.env.NODE_ENV === 'development';
+    console.error(`[${req.timestamp || new Date().toISOString()}] [Error ${statusCode}] [${req.method} ${req.originalUrl}]`);
+    console.error('Error Message:', err.message);
+    console.error('Stack:', err.stack);
     
-    if (isDevelopment) {
-        console.error(`[${req.timestamp || new Date().toISOString()}] [Error ${statusCode}] [${req.method} ${req.originalUrl}]`);
-        console.error('Error Message:', err.message);
-        if (statusCode === 500) {
-            console.error('Stack:', err.stack);
-        }
-    }
 
     res.status(statusCode).json({
         success: false,

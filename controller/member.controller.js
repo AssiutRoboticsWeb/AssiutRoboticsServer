@@ -82,8 +82,9 @@ const register = asyncWrapper(async (req, res, next) => {
     }
     if (oldEmail) {
 
-        const generateToken = jwt.generateToken()
-        const token = await generateToken({ email }, JWT_EXPIRY.LONG);
+        // Correct token generation without calling generateToken as a function
+        // Generate token directly using jwt.generateToken
+        const token = await jwt.generateToken({ email }, JWT_EXPIRY.LONG);
         // https://assiut-robotics-server.vercel.app/
         const token_url = `https://assiut-robotics-server.vercel.app/members/verifyEmail/${token}`
         console.log("req.body is : ", req.body);

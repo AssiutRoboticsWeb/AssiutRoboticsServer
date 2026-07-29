@@ -2,7 +2,7 @@
 import shutil, os, sys
 from pathlib import Path
 
-EXCLUDE = {'.git', 'node_modules', '.vercel', '.husky', '.specstory', '.vscode'}
+EXCLUDE = {'.git', 'node_modules', '.vercel', '.husky', '.specstory', '.vscode', '.env', '.env.production', '.env.example'}
 
 def copy_project(src: Path, dst: Path):
     if not src.is_dir():
