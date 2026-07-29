@@ -38,6 +38,8 @@
     "dev": "nodemon index.js",
     "backup": "node scripts/backup.js",
     "restore": "node scripts/restore.js",
+    "backup:robotics": "node scripts/backup_collection.js Robotics",
+    "backup:db": "node scripts/backup_db.js",
     "seed": "node seeders/memberSeeder.js",
     "seed:fresh": "node seeders/memberSeeder.js --fresh"
   },
