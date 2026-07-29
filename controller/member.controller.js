@@ -126,8 +126,7 @@ const register = asyncWrapper(async (req, res, next) => {
         avatar: DEFAULT_AVATAR
     })
     await newMember.save();
-    const generateToken = jwt.generateToken()
-    const token = await generateToken({ email }, JWT_EXPIRY.DEFAULT);
+    const token = await jwt.generateToken({ email }, JWT_EXPIRY.DEFAULT);
     // https://assiut-robotics-zeta.vercel.app/
     const token_url = `https://assiut-robotics-zeta.vercel.app/members/verifyEmail/${token}`
     console.log("req.body is : ", req.body);
@@ -194,9 +193,8 @@ const login = asyncWrapper(async (req, res) => {
         const error = createError(401, "un authorized", "wait until your account be accepted")
         throw (error);
     }
-    const generateToken = jwt.generateToken();
-
-    const token = await generateToken({ email }, remember);
+    // Correct token generation without calling generateToken as a function
+    const token = await jwt.generateToken({ email }, remember ? JWT_EXPIRY.LONG : JWT_EXPIRY.DEFAULT);
 
     // check if the ip is already in the visits array
     const visit = await Visits.findOne({ ip }, { _id: 1 });
@@ -1901,8 +1899,7 @@ const sendEmailFeedBack = asyncWrapper(async (req, res) => {
         awards: data.awards
     };
 
-    const generateToken = jwt.generateToken()
-    const token = await generateToken(evaluationData);
+    const token = await jwt.generateToken(evaluationData);
     await sendEmail({
         email: Member.email,
         subject: 'Feedback',
