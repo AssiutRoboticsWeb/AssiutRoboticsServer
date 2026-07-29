@@ -24,7 +24,7 @@ def copy_project(src: Path, dst: Path):
     print(f"Copied {src} -> {dst}")
 
 def main():
-    base = Path(__file__).resolve().parents[1]  # assume script in <repo>/scripts
+    base = Path(__file__).resolve().parents[2]  # repo root (AssiutRoboticsWeb)
     # Define pairs
     pairs = [
         (base / 'AssiutRoboticsServer',
